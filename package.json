@@ -5,9 +5,14 @@
   "description": "Simple WebRTC sender/receiver demo with manual signaling",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "npm run sender & npm run receiver",
+    "sender": "serve sender -s -l 3000",
+    "receiver": "serve receiver -s -l 3001"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "serve": "^14.2.6"
   }
 }

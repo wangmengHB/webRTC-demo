@@ -6,20 +6,6 @@ A minimal local WebRTC demo with manual signaling:
 - **Receiver page**: receives and plays remote video stream.
 - **Signaling**: done by **copy/paste** of SDP and ICE JSON between pages.
 
-## Architecture
-
-- `server.js`: static file server only.
-- `sender/`: offer creator + local camera publisher.
-- `receiver/`: answer creator + remote stream viewer.
-
-No WebSocket server is used.
-
-## Prerequisites
-
-- Node.js 18+
-- Modern browser (Chrome/Edge/Safari)
-- Camera permission allowed on sender page
-
 ## Install
 
 ```bash
@@ -63,3 +49,5 @@ After startup:
 - If no video appears, ensure sender camera started before generating offer.
 - Re-run from step 3 when either side refreshes.
 - Confirm pasted data is valid JSON and arrays remain arrays.
+
+## 关于视频读取像素的部分说明
