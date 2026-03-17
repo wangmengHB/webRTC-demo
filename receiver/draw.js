@@ -5,10 +5,13 @@ const readImageCanvas = document.getElementById('readImageCanvas');
 const readImageCtx = readImageCanvas.getContext('2d');
 
 const drawCanvas = document.getElementById('drawCanvas');
+// 这里使用的最简单的 2d context 来进行绘制，
+// 实际使用中可以根据需求选择 webgl 或者 webgpu context 来进行更高效的绘制和处理
 const drawCtx = drawCanvas.getContext('2d');
 
 function drawVideoToCanvas() {
   if (sourceVideo.readyState >= 2) {
+    // 两个 canvas 的尺寸需要和 video 的尺寸保持一致，才能正确的绘制和处理每一帧的视频数据
     if (readImageCanvas.width !== sourceVideo.videoWidth || readImageCanvas.height !== sourceVideo.videoHeight) {
       readImageCanvas.width = sourceVideo.videoWidth;
       readImageCanvas.height = sourceVideo.videoHeight;
