@@ -20,8 +20,8 @@ npm start
 
 After startup:
 
-- Sender: `http://localhost:8080/sender/`
-- Receiver: `http://localhost:8080/receiver/`
+- Sender: `http://localhost:3000`
+- Receiver: `http://localhost:3001`
 
 ## How to use (manual signaling)
 
@@ -49,5 +49,3 @@ After startup:
 - If no video appears, ensure sender camera started before generating offer.
 - Re-run from step 3 when either side refreshes.
 - Confirm pasted data is valid JSON and arrays remain arrays.
-
-## 关于视频读取像素的部分说明
