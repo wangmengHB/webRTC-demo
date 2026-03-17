@@ -1,32 +1,23 @@
-# WebRTC Sender/Receiver Demo
+# WebRTC Sender/Receiver Demo (No WebSocket)
 
-这是一个由 AI 生成的最小的 webrtc demo。 这个 demo 由 3 部分组成：
-1. server： 一个简单的 web server，它在这个 demo 中存在的唯一作用建立 webRTC 握手链接
-2. sender： 视频发送端
-3. receiver: 视频接收端
+A minimal local WebRTC demo with manual signaling:
 
+- **Sender page**: captures local camera video.
+- **Receiver page**: receives and plays remote video stream.
+- **Signaling**: done by **copy/paste** of SDP and ICE JSON between pages.
 
+## Architecture
 
-After startup:
+- `server.js`: static file server only.
+- `sender/`: offer creator + local camera publisher.
+- `receiver/`: answer creator + remote stream viewer.
 
-- Sender: `http://localhost:8080/sender/`
-- Receiver: `http://localhost:8080/receiver/`
-
-
-
-
-
-
-A simple local WebRTC demo with:
-
-- **Sender** page: captures local camera video and publishes it via WebRTC.
-- **Receiver** page: receives and plays remote video stream.
-- **Signaling server**: WebSocket server for SDP and ICE exchange.
+No WebSocket server is used.
 
 ## Prerequisites
 
 - Node.js 18+
-- A modern browser (Chrome/Edge/Safari)
+- Modern browser (Chrome/Edge/Safari)
 - Camera permission allowed on sender page
 
 ## Install
@@ -46,23 +37,29 @@ After startup:
 - Sender: `http://localhost:8080/sender/`
 - Receiver: `http://localhost:8080/receiver/`
 
-## How to use
+## How to use (manual signaling)
 
-1. Open sender page in one tab/window and receiver page in another.
-2. Keep same **Room ID** on both pages (default: `demo-room`).
-3. On sender page, click **Start Camera**.
-4. On sender page, click **Connect**.
-5. On receiver page, click **Connect**.
-6. Receiver should show sender's video.
+1. Open sender page and receiver page in separate tabs/windows.
+2. On **sender** page, click **启动摄像头**.
+3. On **sender** page, click **生成 Offer**.
+4. Copy sender **Offer** JSON into receiver **Offer** input.
+5. On **receiver** page, click **应用 Offer 并生成 Answer**.
+6. Copy receiver **Answer** JSON into sender **Answer** input.
+7. On **sender** page, click **应用 Answer**.
+8. Copy sender **Sender ICE Candidates** JSON array into receiver **Sender ICE Candidates** input.
+9. On **receiver** page, click **添加 Sender ICE**.
+10. Copy receiver **Receiver ICE Candidates** JSON array into sender **Receiver ICE Candidates** input.
+11. On **sender** page, click **添加 Receiver ICE**.
+12. Receiver should display sender video.
 
 ## Notes
 
-- This is a local demo using a public STUN server (`stun.l.google.com:19302`).
-- For production/NAT-restricted environments, add a TURN server.
-- Signaling is in-memory; no persistence/database is used.
+- ICE candidates are collected asynchronously; if arrays are still changing, copy once more after a few seconds.
+- Uses public STUN server: `stun:stun.l.google.com:19302`.
+- For stricter NAT/firewall environments, TURN server is recommended.
 
 ## Troubleshooting
 
-- If receiver shows no video, make sure sender started camera before connecting.
-- Check that both tabs use the same room ID.
-- Ensure camera permissions are granted in browser settings.
+- If no video appears, ensure sender camera started before generating offer.
+- Re-run from step 3 when either side refreshes.
+- Confirm pasted data is valid JSON and arrays remain arrays.

@@ -8,20 +8,32 @@
       body { font-family: Arial, sans-serif; margin: 24px; }
       video { width: 100%; max-width: 720px; background: #000; border-radius: 8px; }
       .row { margin-bottom: 12px; }
-      input { padding: 8px; width: 220px; }
       button { padding: 8px 12px; margin-right: 8px; }
+      textarea { width: 100%; max-width: 720px; min-height: 130px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
       #status { color: #05a; font-weight: 600; }
       #log { white-space: pre-wrap; background: #f6f8fa; padding: 12px; border-radius: 8px; }
     </style>
   </head>
   <body>
     <h1>接收端</h1>
-    <p>加入同一房间以接收发送端的视频流。</p>
+    <p>通过手动复制/粘贴完成信令（无需 WebSocket）。</p>
 
     <div class="row">
-      <label>房间ID: <input id="roomId" value="demo-room" /></label>
-      <button id="connectBtn">连接</button>
+      <button id="createAnswerBtn">应用 Offer 并生成 Answer</button>
+      <button id="addSenderCandidatesBtn">添加 Sender ICE</button>
     </div>
+
+    <h3>1) 从发送端粘贴：Offer</h3>
+    <textarea id="offerIn" placeholder="把发送端生成的 Offer 粘贴到这里"></textarea>
+
+    <h3>2) 发送给发送端：Answer</h3>
+    <textarea id="answerOut" readonly placeholder="点击“应用 Offer 并生成 Answer”后，复制到发送端"></textarea>
+
+    <h3>3) 从发送端粘贴：Sender ICE Candidates</h3>
+    <textarea id="senderCandidatesIn" placeholder="把发送端的 ICE candidates JSON 数组粘贴到这里"></textarea>
+
+    <h3>4) 发送给发送端：Receiver ICE Candidates</h3>
+    <textarea id="receiverCandidatesOut" readonly placeholder="生成 Answer 后会逐步收集，复制到发送端"></textarea>
 
     <div class="row">状态: <span id="status">空闲</span></div>
     <video id="remoteVideo" autoplay playsinline controls></video>

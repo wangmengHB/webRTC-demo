@@ -1,13 +1,18 @@
 const statusEl = document.getElementById('status');
 const logEl = document.getElementById('log');
-const roomIdEl = document.getElementById('roomId');
 const localVideo = document.getElementById('localVideo');
 const startBtn = document.getElementById('startBtn');
-const connectBtn = document.getElementById('connectBtn');
+const createOfferBtn = document.getElementById('createOfferBtn');
+const applyAnswerBtn = document.getElementById('applyAnswerBtn');
+const addReceiverCandidatesBtn = document.getElementById('addReceiverCandidatesBtn');
+const offerOutEl = document.getElementById('offerOut');
+const answerInEl = document.getElementById('answerIn');
+const senderCandidatesOutEl = document.getElementById('senderCandidatesOut');
+const receiverCandidatesInEl = document.getElementById('receiverCandidatesIn');
 
 let localStream;
-let ws;
 let pc;
+const localCandidates = [];
 
 function setStatus(text) {
   statusEl.textContent = text;
@@ -25,9 +30,14 @@ function createPeerConnection() {
   localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
 
   pc.onicecandidate = (event) => {
-    if (event.candidate && ws?.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
+    if (event.candidate) {
+      localCandidates.push(event.candidate);
+      senderCandidatesOutEl.value = JSON.stringify(localCandidates, null, 2);
+      log(`Collected local ICE candidate (${localCandidates.length})`);
+      return;
     }
+
+    log('Local ICE gathering complete');
   };
 
   pc.onconnectionstatechange = () => {
@@ -36,13 +46,6 @@ function createPeerConnection() {
   };
 
   return pc;
-}
-
-async function makeOffer() {
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  ws.send(JSON.stringify({ type: 'offer', sdp: offer }));
-  log('Sent offer');
 }
 
 startBtn.onclick = async () => {
@@ -57,51 +60,62 @@ startBtn.onclick = async () => {
   }
 };
 
-connectBtn.onclick = async () => {
-  const roomId = roomIdEl.value.trim();
-  if (!roomId) {
-    log('Room ID is required');
-    return;
-  }
+createOfferBtn.onclick = async () => {
   if (!localStream) {
     log('Start camera first');
     return;
   }
 
-  ws = new WebSocket(`ws://${location.host}/signal`);
+  localCandidates.length = 0;
+  senderCandidatesOutEl.value = '';
+  receiverCandidatesInEl.value = '';
 
-  ws.onopen = () => {
-    ws.send(JSON.stringify({ type: 'join', role: 'sender', roomId }));
-    setStatus('joined signaling');
-    log(`Joined room: ${roomId} as sender`);
-  };
+  if (pc) {
+    pc.close();
+  }
+  createPeerConnection();
 
-  ws.onmessage = async (evt) => {
-    const msg = JSON.parse(evt.data);
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  offerOutEl.value = JSON.stringify(pc.localDescription, null, 2);
+  setStatus('offer ready');
+  log('Offer created. Copy it to receiver page.');
+};
 
-    if (msg.type === 'peer-joined') {
-      log('Receiver joined, creating offer');
-      if (!pc) createPeerConnection();
-      await makeOffer();
-    } else if (msg.type === 'answer') {
-      await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
-      log('Received answer');
-    } else if (msg.type === 'candidate') {
-      if (pc) {
-        await pc.addIceCandidate(msg.candidate);
-        log('Received ICE candidate');
-      }
-    } else if (msg.type === 'peer-left') {
-      setStatus('receiver disconnected');
-      log('Receiver disconnected');
-    } else if (msg.type === 'error') {
-      setStatus('error');
-      log(`Error: ${msg.message}`);
+applyAnswerBtn.onclick = async () => {
+  if (!pc) {
+    log('Create offer first');
+    return;
+  }
+
+  try {
+    const answer = JSON.parse(answerInEl.value);
+    await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    setStatus('answer applied');
+    log('Answer applied successfully');
+  } catch (err) {
+    log(`Invalid answer JSON: ${err.message}`);
+  }
+};
+
+addReceiverCandidatesBtn.onclick = async () => {
+  if (!pc) {
+    log('Create offer first');
+    return;
+  }
+
+  try {
+    const candidates = JSON.parse(receiverCandidatesInEl.value);
+    if (!Array.isArray(candidates)) {
+      throw new Error('Receiver ICE candidates must be a JSON array');
     }
-  };
 
-  ws.onclose = () => {
-    setStatus('signaling closed');
-    log('Signaling connection closed');
-  };
+    for (const candidate of candidates) {
+      await pc.addIceCandidate(candidate);
+    }
+
+    log(`Added ${candidates.length} receiver ICE candidates`);
+  } catch (err) {
+    log(`Invalid receiver ICE JSON: ${err.message}`);
+  }
 };
