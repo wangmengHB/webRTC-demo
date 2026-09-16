@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mission 2 — The Grid 🔲</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+  :root{--grass:#5DA832;--dirt:#8B5E3C;--stone:#888;--sky:#87CEEB;--night:#1a1a2e;--gold:#FFD700;--panel:#1e2a1e;--panel2:#253325;--accent:#5DA832;--text:#e8f5e9;--muted:#a5c8a5;--success:#69D43B;--border:#3a5a3a;--red:#e05252;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito',sans-serif;background:var(--night);color:var(--text);min-height:100vh;}
+  header{background:linear-gradient(135deg,#1a2e1a,#253325);border-bottom:3px solid var(--accent);padding:20px 32px;display:flex;align-items:center;gap:18px;}
+  .header-icon{font-size:48px;line-height:1;filter:drop-shadow(0 0 10px #5DA83280);}
+  header h1{font-family:'Fredoka One',cursive;font-size:2rem;color:var(--gold);letter-spacing:1px;text-shadow:0 0 20px #FFD70060;}
+  header p{font-size:.95rem;color:var(--muted);margin-top:2px;}
+  .badge{margin-left:auto;background:var(--accent);color:#fff;font-weight:800;font-size:.8rem;padding:6px 14px;border-radius:20px;}
+  .layout{display:grid;grid-template-columns:1fr 1fr;gap:0;height:calc(100vh - 97px);}
+  .lesson-panel{background:var(--panel);border-right:2px solid var(--border);overflow-y:auto;padding:28px 28px 40px;display:flex;flex-direction:column;gap:24px;}
+  .step-card{background:var(--panel2);border:2px solid var(--border);border-radius:14px;overflow:hidden;}
+  .step-card.active{border-color:var(--accent);}
+  .step-card.done{border-color:#3a6e3a;opacity:.75;}
+  .step-header{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;user-select:none;}
+  .step-num{width:32px;height:32px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1rem;color:var(--muted);flex-shrink:0;}
+  .step-card.active .step-num{background:var(--accent);color:#fff;}
+  .step-card.done .step-num{background:var(--success);color:#fff;}
+  .step-title{font-weight:800;font-size:1rem;}
+  .step-emoji{font-size:1.3rem;margin-left:auto;}
+  .step-body{padding:0 18px 18px;display:none;flex-direction:column;gap:14px;}
+  .step-card.active .step-body{display:flex;}
+  .step-body p{font-size:.92rem;color:var(--muted);line-height:1.6;}
+  .step-body p strong{color:var(--text);}
+  .code-label{font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
+  .editor-wrap{position:relative;border-radius:10px;overflow:hidden;border:2px solid var(--border);}
+  .editor-wrap:focus-within{border-color:var(--accent);}
+  textarea{width:100%;background:#0d1a0d;color:#a8d8a8;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.6;padding:14px;border:none;resize:vertical;min-height:180px;outline:none;}
+  .btn-run{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s,transform .1s;align-self:flex-start;}
+  .btn-run:hover{background:#6ec83d;}.btn-run:active{transform:scale(.97);}
+  .btn-next{background:var(--gold);color:#1a1a00;border:none;border-radius:10px;padding:11px 22px;font-family:'Fredoka One',cursive;font-size:1rem;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s;align-self:flex-end;}
+  .btn-next:hover{background:#ffe040;}
+  .error-box{background:#2e0e0e;border:1.5px solid var(--red);border-radius:8px;padding:10px 14px;font-size:.82rem;color:#f08080;display:none;font-family:monospace;}
+  .canvas-panel{background:#0a120a;display:flex;flex-direction:column;}
+  .canvas-toolbar{background:var(--panel2);border-bottom:2px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:10px;font-size:.85rem;color:var(--muted);font-weight:700;}
+  .dot{width:10px;height:10px;border-radius:50%;}
+  .canvas-area{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;}
+  canvas{border:3px solid var(--border);border-radius:10px;image-rendering:pixelated;box-shadow:0 0 40px #00000080;max-width:100%;}
+  .fun-fact{background:#1a2e1a;border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 14px;font-size:.85rem;color:#d4c878;}
+  .fun-fact strong{display:block;margin-bottom:3px;}
+  .progress-bar-wrap{padding:0 0 6px;}
+  .progress-bar-track{background:var(--border);border-radius:10px;height:8px;overflow:hidden;}
+  .progress-bar-fill{background:linear-gradient(90deg,var(--accent),var(--gold));height:100%;border-radius:10px;transition:width .4s ease;}
+  .progress-label{font-size:.78rem;color:var(--muted);margin-bottom:6px;font-weight:700;}
+  .celebrate{text-align:center;padding:10px;font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--gold);animation:pop .4s ease;display:none;}
+  @keyframes pop{0%{transform:scale(.7);opacity:0;}70%{transform:scale(1.1);}100%{transform:scale(1);opacity:1;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-icon">🔲</div>
+  <div><h1>Mission 2 — The Grid</h1><p>Use loops to fill a whole Minecraft-style world with blocks</p></div>
+  <div class="badge">⭐ MISSION 2 OF 6</div>
+</header>
+<div class="layout">
+<div class="lesson-panel">
+  <div class="progress-bar-wrap">
+    <div class="progress-label" id="progressLabel">Step 1 of 4</div>
+    <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="step-card active" id="card-1">
+    <div class="step-header" onclick="toggleCard(1)"><div class="step-num">1</div><div class="step-title">Draw a Row with a Loop</div><div class="step-emoji">➡️</div></div>
+    <div class="step-body">
+      <p>Drawing blocks one by one would take forever! Real game devs use a <strong>loop</strong> — code that repeats automatically.<br><br>A <code>for</code> loop counts from a start number to an end number. We use the count to move each block to the right!</p>
+      <div class="fun-fact"><strong>🔁 Loop magic!</strong> Instead of writing 8 blocks by hand, one loop does it all. Minecraft uses loops to generate its entire world!</div>
+      <div class="code-label">Your first loop ↓</div>
+      <div class="editor-wrap"><textarea id="code-1" spellcheck="false">const canvas = document.getElementById('world') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+
+const BLOCK = 40; // each block is 40 pixels wide
+
+// i goes 0, 1, 2, 3, 4, 5, 6, 7 — that's 8 blocks!
+for (let i = 0; i < 8; i++) {
+  ctx.fillStyle = '#5DA832'; // grass green
+  ctx.fillRect(i * BLOCK, 140, BLOCK - 2, BLOCK - 2);
+  // i * BLOCK moves each block to the right
+}</textarea></div>
+      <div class="error-box" id="err-1"></div>
+      <button class="btn-run" onclick="runCode(1)">▶ Run Code!</button>
+      <button class="btn-next" id="next-1" style="display:none" onclick="goNext(1)">Cool! Next Step →</button>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-2">
+    <div class="step-header" onclick="toggleCard(2)"><div class="step-num">2</div><div class="step-title">Two Loops = Full Grid!</div><div class="step-emoji">🔲</div></div>
+    <div class="step-body">
+      <p>One loop fills a <strong>row</strong>. A loop <em>inside</em> a loop fills the whole <strong>grid</strong>! The outer loop goes down (rows), the inner loop goes across (columns).<br><br>This is called a <strong>nested loop</strong> — one of the most powerful patterns in game programming!</p>
+      <div class="fun-fact"><strong>🧠 Think about it!</strong> 8 columns × 8 rows = 64 blocks drawn with just a few lines of code!</div>
+      <div class="code-label">Nested loops ↓</div>
+      <div class="editor-wrap"><textarea id="code-2" spellcheck="false">const canvas = document.getElementById('world') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+
+const BLOCK = 40;
+
+// Outer loop = rows (going DOWN)
+for (let row = 0; row < 8; row++) {
+  // Inner loop = columns (going ACROSS)
+  for (let col = 0; col < 8; col++) {
+    ctx.fillStyle = '#5DA832';
+    ctx.fillRect(
+      col * BLOCK,  // x position
+      row * BLOCK,  // y position
+      BLOCK - 2,    // width (gap of 2px)
+      BLOCK - 2     // height
+    );
+  }
+}</textarea></div>
+      <div class="error-box" id="err-2"></div>
+      <button class="btn-run" onclick="runCode(2)">▶ Run Code!</button>
+      <button class="btn-next" id="next-2" style="display:none" onclick="goNext(2)">Amazing! Next Step →</button>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-3">
+    <div class="step-header" onclick="toggleCard(3)"><div class="step-num">3</div><div class="step-title">Different Colors per Row</div><div class="step-emoji">🌿</div></div>
+    <div class="step-body">
+      <p>A real Minecraft world has <strong>layers</strong>: sky at the top, grass, then dirt, then stone at the bottom. We use the <code>row</code> number inside an <strong>if statement</strong> to pick the right color!</p>
+      <div class="fun-fact"><strong>🪨 Minecraft layers!</strong> Row 0 = sky, Row 1 = grass, Rows 2-4 = dirt, Rows 5-7 = stone. Just like real Minecraft!</div>
+      <div class="code-label">Color by row ↓</div>
+      <div class="editor-wrap"><textarea id="code-3" spellcheck="false">const canvas = document.getElementById('world') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+
+const BLOCK = 40;
+
+for (let row = 0; row < 8; row++) {
+  for (let col = 0; col < 8; col++) {
+    // Pick color based on the row number
+    if (row === 0) {
+      ctx.fillStyle = '#87CEEB'; // sky blue
+    } else if (row === 1) {
+      ctx.fillStyle = '#5DA832'; // grass
+    } else if (row <= 4) {
+      ctx.fillStyle = '#8B5E3C'; // dirt
+    } else {
+      ctx.fillStyle = '#888888'; // stone
+    }
+    ctx.fillRect(col * BLOCK, row * BLOCK, BLOCK - 2, BLOCK - 2);
+  }
+}</textarea></div>
+      <div class="error-box" id="err-3"></div>
+      <button class="btn-run" onclick="runCode(3)">▶ Run Code!</button>
+      <button class="btn-next" id="next-3" style="display:none" onclick="goNext(3)">Awesome! Final Step →</button>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-4">
+    <div class="step-header" onclick="toggleCard(4)"><div class="step-num">4</div><div class="step-title">🏆 Random World Generator!</div><div class="step-emoji">🌍</div></div>
+    <div class="step-body">
+      <p>Minecraft generates worlds <strong>randomly</strong> — every world is different! Let's use <code>Math.random()</code> to sprinkle random gold and coal into the stone layer.<br><br><code>Math.random()</code> gives a number between 0 and 1. Less than 0.1 means a 10% chance!</p>
+      <div class="fun-fact"><strong>🎲 Procedural generation!</strong> This is exactly how Minecraft generates new worlds. Run it multiple times — each world is unique!</div>
+      <div class="code-label">Add random ores — run multiple times! ↓</div>
+      <div class="editor-wrap"><textarea id="code-4" spellcheck="false">const canvas = document.getElementById('world') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+
+const BLOCK = 40;
+
+for (let row = 0; row < 8; row++) {
+  for (let col = 0; col < 8; col++) {
+    let color = '#87CEEB'; // sky
+
+    if (row === 1) color = '#5DA832'; // grass
+    else if (row >= 2 && row <= 4) color = '#8B5E3C'; // dirt
+    else if (row >= 5) {
+      color = '#888888'; // stone
+      if (Math.random() < 0.10) color = '#FFD700';      // 10% gold!
+      else if (Math.random() < 0.15) color = '#333333'; // 15% coal
+    }
+
+    ctx.fillStyle = color;
+    ctx.fillRect(col * BLOCK, row * BLOCK, BLOCK - 2, BLOCK - 2);
+  }
+}
+// Hit Run again and again — each world is different!</textarea></div>
+      <div class="error-box" id="err-4"></div>
+      <button class="btn-run" onclick="runCode(4)">▶ Run Code!</button>
+      <div class="celebrate" id="celebrate">🎉 MISSION 2 COMPLETE! You built a world generator! 🌍</div>
+    </div>
+  </div>
+</div>
+
+<div class="canvas-panel">
+  <div class="canvas-toolbar">
+    <div class="dot" style="background:#e05252"></div>
+    <div class="dot" style="background:#e0a052"></div>
+    <div class="dot" style="background:#5DA832"></div>
+    <span style="margin-left:6px">🌍 Your Block World</span>
+    <span style="margin-left:auto;font-size:.78rem;opacity:.6">320 × 320 px</span>
+  </div>
+  <div class="canvas-area"><canvas id="world" width="320" height="320"></canvas></div>
+</div>
+</div>
+<script>
+function stripTypes(c){return c.replace(/\bas\s+\w[\w<>\[\], ]*/g,'').replace(/!\s*;/g,';').replace(/!$/gm,'').replace(/!(\s*[.[(])/g,'$1');}
+function clearCanvas(){const cv=document.getElementById('world');const ctx=cv.getContext('2d');ctx.fillStyle='#0a120a';ctx.fillRect(0,0,cv.width,cv.height);}
+function runCode(step){
+  const ta=document.getElementById('code-'+step);
+  const err=document.getElementById('err-'+step);
+  const nxt=document.getElementById('next-'+step);
+  clearCanvas();err.style.display='none';
+  try{new Function(stripTypes(ta.value))();
+    if(step<4&&nxt)nxt.style.display='flex';
+    if(step===4)document.getElementById('celebrate').style.display='block';
+  }catch(e){err.textContent='❌ Oops! '+e.message;err.style.display='block';}
+}
+function goNext(step){
+  const cur=document.getElementById('card-'+step);cur.classList.remove('active');cur.classList.add('done');
+  const nxt=document.getElementById('card-'+(step+1));
+  if(nxt){nxt.classList.add('active');nxt.scrollIntoView({behavior:'smooth',block:'start'});}
+  updateProgress(step+1,4);
+}
+function toggleCard(step){const c=document.getElementById('card-'+step);if(!c.classList.contains('active'))c.classList.add('active');}
+function updateProgress(cur,tot){document.getElementById('progressFill').style.width=((cur-1)/tot*100)+'%';document.getElementById('progressLabel').textContent='Step '+Math.min(cur,tot)+' of '+tot;}
+clearCanvas();updateProgress(1,4);
+</script>
+</body>
+</html>

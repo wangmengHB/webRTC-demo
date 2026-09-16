@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Block World Academy 🎮</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+  :root{--gold:#FFD700;--panel:#1e2a1e;--panel2:#253325;--accent:#5DA832;--text:#e8f5e9;--muted:#a5c8a5;--border:#3a5a3a;--night:#0d1a0d;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito',sans-serif;background:var(--night);color:var(--text);min-height:100vh;padding-bottom:60px;}
+
+  /* HERO */
+  .hero{background:linear-gradient(160deg,#0d1a0d 0%,#1a2e1a 50%,#0d0d20 100%);padding:60px 40px 50px;text-align:center;border-bottom:3px solid var(--accent);position:relative;overflow:hidden;}
+  .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 60%, #5DA83215 0%, transparent 70%);}
+  .hero-icon{font-size:80px;line-height:1;filter:drop-shadow(0 0 30px #5DA83260);margin-bottom:16px;}
+  .hero h1{font-family:'Fredoka One',cursive;font-size:3rem;color:var(--gold);text-shadow:0 0 40px #FFD70050;margin-bottom:10px;}
+  .hero p{font-size:1.1rem;color:var(--muted);max-width:520px;margin:0 auto;line-height:1.6;}
+  .hero-sub{margin-top:18px;font-size:.9rem;color:#6a9a6a;}
+
+  /* MISSION GRID */
+  .missions{max-width:860px;margin:50px auto 0;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;}
+
+  .mission-card{background:var(--panel);border:2px solid var(--border);border-radius:18px;overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s;}
+  .mission-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 8px 30px #5DA83225;}
+  .mission-card a{text-decoration:none;color:inherit;display:block;}
+
+  .card-top{padding:22px 22px 0;display:flex;align-items:flex-start;gap:14px;}
+  .mission-icon{font-size:40px;line-height:1;flex-shrink:0;}
+  .mission-num{font-size:.72rem;font-weight:800;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;}
+  .mission-title{font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--gold);}
+
+  .card-body{padding:14px 22px 18px;}
+  .mission-desc{font-size:.88rem;color:var(--muted);line-height:1.55;margin-bottom:12px;}
+
+  .tag-row{display:flex;flex-wrap:wrap;gap:6px;}
+  .tag{background:#1a3a1a;border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:.72rem;color:var(--muted);}
+
+  .card-footer{background:var(--panel2);padding:12px 22px;display:flex;align-items:center;justify-content:space-between;font-size:.83rem;}
+  .weeks{color:#6a9a6a;font-weight:700;}
+  .start-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 16px;font-family:'Fredoka One',cursive;font-size:.9rem;cursor:pointer;text-decoration:none;}
+  .mission-card:hover .start-btn{background:#6ec83d;}
+
+  /* FINAL */
+  .final-card{background:linear-gradient(135deg,#2a2000,#1a1a30);border:2px solid var(--gold);}
+  .final-card:hover{border-color:var(--gold);box-shadow:0 8px 40px #FFD70025;}
+  .final-card .start-btn{background:var(--gold);color:#1a1a00;}
+
+  /* BOTTOM NOTE */
+  .note{max-width:860px;margin:40px auto 0;padding:0 24px;}
+  .note-inner{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px 24px;display:flex;gap:16px;align-items:flex-start;}
+  .note-inner .icon{font-size:2rem;flex-shrink:0;}
+  .note-inner h3{font-family:'Fredoka One',cursive;color:var(--gold);margin-bottom:6px;}
+  .note-inner p{font-size:.88rem;color:var(--muted);line-height:1.6;}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-icon">⛏️</div>
+  <h1>Block World Academy</h1>
+  <p>A 6-mission coding adventure for young Minecraft fans — learn TypeScript by building your very own game from scratch!</p>
+  <div class="hero-sub">🎮 No installation needed · Just open in any browser · Built for age 7+</div>
+</div>
+
+<div class="missions">
+
+  <div class="mission-card">
+    <a href="mission1-block-world.html">
+      <div class="card-top">
+        <div class="mission-icon">🟩</div>
+        <div><div class="mission-num">Mission 1</div><div class="mission-title">Hello, Block World!</div></div>
+      </div>
+      <div class="card-body">
+        <div class="mission-desc">Draw your first Minecraft block on a canvas. Change its color, size, and position. Place 3 blocks in a row, then build your own little scene!</div>
+        <div class="tag-row">
+          <span class="tag">canvas</span><span class="tag">fillRect</span><span class="tag">colors</span><span class="tag">coordinates</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="weeks">📅 Week 1–2</span>
+        <span class="start-btn">Start →</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="mission-card">
+    <a href="mission2-the-grid.html">
+      <div class="card-top">
+        <div class="mission-icon">🔲</div>
+        <div><div class="mission-num">Mission 2</div><div class="mission-title">The Grid</div></div>
+      </div>
+      <div class="card-body">
+        <div class="mission-desc">Use loops to fill a whole grid with blocks. Assign different colors per row (sky, grass, dirt, stone). Then add random gold and coal ores!</div>
+        <div class="tag-row">
+          <span class="tag">for loops</span><span class="tag">nested loops</span><span class="tag">if statements</span><span class="tag">Math.random</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="weeks">📅 Week 2–3</span>
+        <span class="start-btn">Start →</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="mission-card">
+    <a href="mission3-the-map.html">
+      <div class="card-top">
+        <div class="mission-icon">🗺️</div>
+        <div><div class="mission-num">Mission 3</div><div class="mission-title">The Map</div></div>
+      </div>
+      <div class="card-body">
+        <div class="mission-desc">Store your world as a 2D array of numbers. Each number is a block type. Use a switch statement to pick colors. Then design your own level!</div>
+        <div class="tag-row">
+          <span class="tag">2D arrays</span><span class="tag">switch</span><span class="tag">data design</span><span class="tag">level design</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="weeks">📅 Week 3–4</span>
+        <span class="start-btn">Start →</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="mission-card">
+    <a href="mission4-a-hero-appears.html">
+      <div class="card-top">
+        <div class="mission-icon">🧑</div>
+        <div><div class="mission-num">Mission 4</div><div class="mission-title">A Hero Appears!</div></div>
+      </div>
+      <div class="card-body">
+        <div class="mission-desc">Draw a blocky Steve character. Listen for arrow key presses to move him. Add boundary checks so he can't walk off the screen. Then add smooth 60 FPS movement!</div>
+        <div class="tag-row">
+          <span class="tag">keyboard events</span><span class="tag">game state</span><span class="tag">game loop</span><span class="tag">requestAnimationFrame</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="weeks">📅 Week 4–5</span>
+        <span class="start-btn">Start →</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="mission-card">
+    <a href="mission5-game-logic.html">
+      <div class="card-top">
+        <div class="mission-icon">💥</div>
+        <div><div class="mission-num">Mission 5</div><div class="mission-title">Game Logic!</div></div>
+      </div>
+      <div class="card-body">
+        <div class="mission-desc">Learn collision detection — when do two boxes touch? Collect gold gems for points. Block movement with a wall. Finally, add a win condition with a glowing exit!</div>
+        <div class="tag-row">
+          <span class="tag">collision detection</span><span class="tag">collectibles</span><span class="tag">score</span><span class="tag">win condition</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="weeks">📅 Week 5–6</span>
+        <span class="start-btn">Start →</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="mission-card final-card">
+    <a href="mission6-your-game.html">
+      <div class="card-top">
+        <div class="mission-icon">🏆</div>
+        <div><div class="mission-num">Mission 6 — FINAL!</div><div class="mission-title">Your Game, Your Rules!</div></div>
+      </div>
+      <div class="card-body">
+        <div class="mission-desc">You're the game designer now! Pick a creative challenge: a bouncing enemy, a day/night cycle, a key &amp; door puzzle, or gravity with jumping. The code is yours!</div>
+        <div class="tag-row">
+          <span class="tag">enemy AI</span><span class="tag">day/night</span><span class="tag">puzzle logic</span><span class="tag">gravity &amp; jump</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="weeks">📅 Week 6–8</span>
+        <span class="start-btn">🏆 Final Boss →</span>
+      </div>
+    </a>
+  </div>
+
+</div>
+
+<div class="note">
+  <div class="note-inner">
+    <div class="icon">💡</div>
+    <div>
+      <h3>Tips for parents</h3>
+      <p>Keep sessions to <strong>20–30 minutes</strong>. Let your child type the code themselves, even slowly — ownership matters! When errors appear, read them together as puzzles to solve. Name variables after his favourite things (<code>steveX</code>, <code>creeperSpeed</code>). Celebrate every mission with a screenshot. All 6 files work offline — no internet needed after opening!</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

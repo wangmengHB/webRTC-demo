@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mission 1 — Hello, Block World! 🟩</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+
+  :root {
+    --grass:   #5DA832;
+    --dirt:    #8B5E3C;
+    --stone:   #888;
+    --sky:     #87CEEB;
+    --night:   #1a1a2e;
+    --gold:    #FFD700;
+    --panel:   #1e2a1e;
+    --panel2:  #253325;
+    --accent:  #5DA832;
+    --text:    #e8f5e9;
+    --muted:   #a5c8a5;
+    --success: #69D43B;
+    --border:  #3a5a3a;
+    --red:     #e05252;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--night);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #1a2e1a 0%, #253325 100%);
+    border-bottom: 3px solid var(--accent);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .header-icon {
+    font-size: 48px;
+    line-height: 1;
+    filter: drop-shadow(0 0 10px #5DA83280);
+  }
+  header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: var(--gold);
+    letter-spacing: 1px;
+    text-shadow: 0 0 20px #FFD70060;
+  }
+  header p {
+    font-size: 0.95rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 6px 14px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    height: calc(100vh - 97px);
+  }
+
+  /* ── LEFT PANEL: lessons ── */
+  .lesson-panel {
+    background: var(--panel);
+    border-right: 2px solid var(--border);
+    overflow-y: auto;
+    padding: 28px 28px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .step-card {
+    background: var(--panel2);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .step-card.active   { border-color: var(--accent); }
+  .step-card.done     { border-color: #3a6e3a; opacity: 0.75; }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .step-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .step-card.active .step-num { background: var(--accent); color: #fff; }
+  .step-card.done  .step-num  { background: var(--success); color: #fff; }
+
+  .step-title { font-weight: 800; font-size: 1rem; }
+  .step-emoji { font-size: 1.3rem; margin-left: auto; }
+
+  .step-body {
+    padding: 0 18px 18px;
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .step-card.active .step-body { display: flex; }
+
+  .step-body p { font-size: 0.92rem; color: var(--muted); line-height: 1.6; }
+  .step-body p strong { color: var(--text); }
+
+  /* code editor */
+  .code-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+  }
+  .editor-wrap {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid var(--border);
+  }
+  .editor-wrap:focus-within { border-color: var(--accent); }
+  textarea {
+    width: 100%;
+    background: #0d1a0d;
+    color: #a8d8a8;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    padding: 14px;
+    border: none;
+    resize: vertical;
+    min-height: 140px;
+    outline: none;
+  }
+
+  /* run button */
+  .btn-run {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s, transform 0.1s;
+    align-self: flex-start;
+  }
+  .btn-run:hover  { background: #6ec83d; }
+  .btn-run:active { transform: scale(0.97); }
+
+  .btn-next {
+    background: var(--gold);
+    color: #1a1a00;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 22px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s;
+    align-self: flex-end;
+  }
+  .btn-next:hover { background: #ffe040; }
+
+  .error-box {
+    background: #2e0e0e;
+    border: 1.5px solid var(--red);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    color: #f08080;
+    display: none;
+    font-family: monospace;
+  }
+
+  /* ── RIGHT PANEL: canvas ── */
+  .canvas-panel {
+    background: #0a120a;
+    display: flex;
+    flex-direction: column;
+  }
+  .canvas-toolbar {
+    background: var(--panel2);
+    border-bottom: 2px solid var(--border);
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .canvas-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  canvas {
+    border: 3px solid var(--border);
+    border-radius: 10px;
+    image-rendering: pixelated;
+    box-shadow: 0 0 40px #00000080;
+    max-width: 100%;
+  }
+
+  /* fun facts */
+  .fun-fact {
+    background: #1a2e1a;
+    border-left: 4px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    color: #d4c878;
+  }
+  .fun-fact strong { display: block; margin-bottom: 3px; }
+
+  /* progress bar */
+  .progress-bar-wrap {
+    padding: 0 28px 6px;
+  }
+  .progress-bar-track {
+    background: var(--border);
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    background: linear-gradient(90deg, var(--accent), var(--gold));
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .progress-label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+
+  .celebrate {
+    text-align: center;
+    padding: 10px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    color: var(--gold);
+    animation: pop 0.4s ease;
+    display: none;
+  }
+  @keyframes pop {
+    0%   { transform: scale(0.7); opacity: 0; }
+    70%  { transform: scale(1.1); }
+    100% { transform: scale(1);   opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-icon">🟩</div>
+  <div>
+    <h1>Mission 1 — Hello, Block World!</h1>
+    <p>Learn to draw your first Minecraft block using code</p>
+  </div>
+  <div class="badge">⭐ MISSION 1 OF 6</div>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT: Lesson Steps -->
+  <div class="lesson-panel">
+
+    <div class="progress-bar-wrap">
+      <div class="progress-label" id="progressLabel">Step 1 of 4</div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="step-card active" id="card-1">
+      <div class="step-header" onclick="toggleCard(1)">
+        <div class="step-num">1</div>
+        <div class="step-title">Meet the Canvas</div>
+        <div class="step-emoji">🎨</div>
+      </div>
+      <div class="step-body">
+        <p>
+          In Minecraft, the world is made of <strong>blocks on a grid</strong>. On a computer screen, everything is also a grid — millions of tiny dots called <strong>pixels</strong>.<br><br>
+          We draw on something called a <strong>canvas</strong> — it's like a blank piece of graph paper where we can color in squares!<br><br>
+          The canvas has a <strong>position system</strong>: <code>x</code> goes left→right, <code>y</code> goes top→bottom. The top-left corner is <code>(0, 0)</code>.
+        </p>
+        <div class="fun-fact">
+          <strong>🌍 Minecraft fact!</strong>
+          A Minecraft chunk is 16×16 blocks — just like a grid. We'll build our own grid soon!
+        </div>
+        <p>👉 <strong>Try it:</strong> Run the code on the right to draw your first block!</p>
+        <div class="code-label">Your first TypeScript code ↓</div>
+        <div class="editor-wrap">
+          <textarea id="code-1" spellcheck="false">// Get the canvas and its drawing tool
+const canvas = document.getElementById('world') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+
+// Draw a green grass block at position (50, 50)
+// fillRect(x, y, width, height)
+ctx.fillStyle = '#5DA832'; // grass green color
+ctx.fillRect(50, 50, 60, 60); // x=50, y=50, 60px wide, 60px tall</textarea>
+        </div>
+        <div class="error-box" id="err-1"></div>
+        <button class="btn-run" onclick="runCode(1)">▶ Run Code!</button>
+        <button class="btn-next" id="next-1" style="display:none" onclick="goNext(1)">Nice! Next Step →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-card" id="card-2">
+      <div class="step-header" onclick="toggleCard(2)">
+        <div class="step-num">2</div>
+        <div class="step-title">Change Color &amp; Size</div>
+        <div class="step-emoji">🎨</div>
+      </div>
+      <div class="step-body">
+        <p>
+          Blocks come in all colors! In code, we describe colors with a <strong>hex code</strong> — a # followed by 6 letters and numbers.<br><br>
+          Try changing the color and size of your block below. Can you make a <strong>dirt block</strong>?
+        </p>
+        <div class="fun-fact">
+          <strong>💡 Hint!</strong>
+          Dirt is brownish — try <code>#8B5E3C</code>. Stone is gray — try <code>#888888</code>.
+        </div>
+        <div class="code-label">Edit &amp; run this code ↓</div>
+        <div class="editor-wrap">
+          <textarea id="code-2" spellcheck="false">const canvas = document.getElementById('world') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+
+// Try changing these values!
+ctx.fillStyle = '#5DA832'; // Change this color
+ctx.fillRect(20, 20, 80, 80); // Change x, y, width, height
+
+// Can you draw a SECOND block next to the first one?
+// Hint: change the x position!</textarea>
+        </div>
+        <div class="error-box" id="err-2"></div>
+        <button class="btn-run" onclick="runCode(2)">▶ Run Code!</button>
+        <button class="btn-next" id="next-2" style="display:none" onclick="goNext(2)">Awesome! Next Step →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step-card" id="card-3">
+      <div class="step-header" onclick="toggleCard(3)">
+        <div class="step-num">3</div>
+        <div class="step-title">Draw 3 Blocks in a Row</div>
+        <div class="step-emoji">🟩🟫🪨</div>
+      </div>
+      <div class="step-body">
+        <p>
+          In Minecraft, the ground is layers: <strong>grass on top, dirt below, stone at the bottom</strong>.<br><br>
+          Let's draw those 3 blocks in a row! Each block is 64px wide and 64px tall. We put them side by side by changing <strong>x</strong>.
+        </p>
+        <div class="fun-fact">
+          <strong>🧱 Code pattern!</strong>
+          Block 1 starts at x=<strong>10</strong>. Block 2 starts at x=<strong>74</strong> (10 + 64). Block 3 at x=<strong>138</strong>!
+        </div>
+        <div class="code-label">Complete the code below ↓</div>
+        <div class="editor-wrap">
+          <textarea id="code-3" spellcheck="false">const canvas = document.getElementById('world') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+
+const BLOCK = 64; // size of each block in pixels
+const y = 80;     // all blocks sit on the same row
+
+// 🟩 Grass block
+ctx.fillStyle = '#5DA832';
+ctx.fillRect(10, y, BLOCK, BLOCK);
+
+// 🟫 Dirt block — starts at x = 10 + 64 = 74
+ctx.fillStyle = '#8B5E3C';
+ctx.fillRect(74, y, BLOCK, BLOCK);
+
+// 🪨 Stone block — can you work out the x?
+ctx.fillStyle = '#888888';
+ctx.fillRect(138, y, BLOCK, BLOCK); // try changing 138!</textarea>
+        </div>
+        <div class="error-box" id="err-3"></div>
+        <button class="btn-run" onclick="runCode(3)">▶ Run Code!</button>
+        <button class="btn-next" id="next-3" style="display:none" onclick="goNext(3)">Let's go! Final Step →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step-card" id="card-4">
+      <div class="step-header" onclick="toggleCard(4)">
+        <div class="step-num">4</div>
+        <div class="step-title">🏆 Build Your Own World!</div>
+        <div class="step-emoji">🌍</div>
+      </div>
+      <div class="step-body">
+        <p>
+          You're a <strong>real game programmer now</strong>! 🎉<br><br>
+          Below is a blank canvas. Can you draw your own little Minecraft scene?<br><br>
+          Ideas:
+        </p>
+        <p>
+          🌅 <strong>Sunrise scene</strong> — blue sky at top, grass at bottom<br>
+          🏠 <strong>Simple house</strong> — brown walls, gray roof, yellow window<br>
+          ⛏️ <strong>Underground</strong> — stone with a gold ore block hidden inside
+        </p>
+        <div class="fun-fact">
+          <strong>🌟 Challenge!</strong>
+          Try drawing a yellow block <code>#FFD700</code> and pretend it's gold ore. Where will you hide it?
+        </div>
+        <div class="code-label">Your canvas — go wild! ↓</div>
+        <div class="editor-wrap">
+          <textarea id="code-4" spellcheck="false">const canvas = document.getElementById('world') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+
+// 🌅 Sky — fill the whole background with blue
+ctx.fillStyle = '#87CEEB';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+// 🌿 Grass ground at the bottom
+ctx.fillStyle = '#5DA832';
+ctx.fillRect(0, 260, canvas.width, 60);
+
+// 🟫 Dirt below the grass
+ctx.fillStyle = '#8B5E3C';
+ctx.fillRect(0, 300, canvas.width, 60);
+
+// 💛 Hidden gold ore — you found it!
+ctx.fillStyle = '#FFD700';
+ctx.fillRect(160, 270, 40, 40);
+
+// 🌲 Can you add a tree? Try a brown trunk + green top!</textarea>
+        </div>
+        <div class="error-box" id="err-4"></div>
+        <button class="btn-run" onclick="runCode(4)">▶ Run Code!</button>
+        <div class="celebrate" id="celebrate">🎉 MISSION 1 COMPLETE! You're a game programmer! 🎉</div>
+      </div>
+    </div>
+
+  </div><!-- end lesson-panel -->
+
+  <!-- RIGHT: Canvas preview -->
+  <div class="canvas-panel">
+    <div class="canvas-toolbar">
+      <div class="dot" style="background:#e05252"></div>
+      <div class="dot" style="background:#e0a052"></div>
+      <div class="dot" style="background:#5DA832"></div>
+      <span style="margin-left:6px">🌍 Your Block World</span>
+      <span style="margin-left: auto; font-size:0.78rem; opacity:0.6">320 × 320 px</span>
+    </div>
+    <div class="canvas-area">
+      <canvas id="world" width="320" height="320"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── TypeScript-lite runner ──
+// We strip TS type annotations before eval so it runs in the browser without a compiler.
+function stripTypes(code) {
+  return code
+    .replace(/\bas\s+\w+[\w<>\[\], ]*/g, '')   // remove "as Type"
+    .replace(/!\s*;/g, ';')                      // remove non-null assertions before ;
+    .replace(/!$/gm, '')                         // remove trailing !
+    .replace(/!(\s*[.[(])/g, '$1');              // remove ! before . [ (
+}
+
+let completedSteps = 0;
+
+function clearCanvas() {
+  const canvas = document.getElementById('world');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // draw a faint grid
+  ctx.strokeStyle = '#1e2e1e';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x <= 320; x += 20) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 320); ctx.stroke();
+  }
+  for (let y = 0; y <= 320; y += 20) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(320, y); ctx.stroke();
+  }
+}
+
+function runCode(step) {
+  const textarea = document.getElementById('code-' + step);
+  const errBox   = document.getElementById('err-' + step);
+  const nextBtn  = document.getElementById('next-' + step);
+
+  clearCanvas();
+  errBox.style.display = 'none';
+
+  let code = stripTypes(textarea.value);
+  // Replace getElementById so it finds the right canvas
+  try {
+    const fn = new Function(code);
+    fn();
+
+    // Success!
+    errBox.style.display = 'none';
+    if (step < 4 && nextBtn) {
+      nextBtn.style.display = 'flex';
+    }
+    if (step === 4) {
+      document.getElementById('celebrate').style.display = 'block';
+    }
+  } catch (e) {
+    errBox.textContent = '❌ Oops! ' + e.message;
+    errBox.style.display = 'block';
+  }
+}
+
+function goNext(step) {
+  // Mark current as done
+  const current = document.getElementById('card-' + step);
+  current.classList.remove('active');
+  current.classList.add('done');
+  current.querySelector('.step-body').style.display = 'none';
+
+  // Activate next
+  const next = document.getElementById('card-' + (step + 1));
+  if (next) {
+    next.classList.add('active');
+    next.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  completedSteps = step;
+  updateProgress(step + 1, 4);
+}
+
+function toggleCard(step) {
+  const card = document.getElementById('card-' + step);
+  if (card.classList.contains('active')) return; // already open
+  card.classList.add('active');
+}
+
+function updateProgress(current, total) {
+  const pct = ((current - 1) / total) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent =
+    `Step ${Math.min(current, total)} of ${total}`;
+}
+
+// Init
+clearCanvas();
+updateProgress(1, 4);
+</script>
+</body>
+</html>

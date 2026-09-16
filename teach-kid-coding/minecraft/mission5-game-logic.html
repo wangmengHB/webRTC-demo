@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mission 5 — Game Logic! 💥</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+  :root{--grass:#5DA832;--dirt:#8B5E3C;--stone:#888;--sky:#87CEEB;--night:#1a1a2e;--gold:#FFD700;--panel:#1e2a1e;--panel2:#253325;--accent:#5DA832;--text:#e8f5e9;--muted:#a5c8a5;--success:#69D43B;--border:#3a5a3a;--red:#e05252;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito',sans-serif;background:var(--night);color:var(--text);min-height:100vh;}
+  header{background:linear-gradient(135deg,#1a2e1a,#253325);border-bottom:3px solid var(--accent);padding:20px 32px;display:flex;align-items:center;gap:18px;}
+  .header-icon{font-size:48px;line-height:1;filter:drop-shadow(0 0 10px #5DA83280);}
+  header h1{font-family:'Fredoka One',cursive;font-size:2rem;color:var(--gold);text-shadow:0 0 20px #FFD70060;}
+  header p{font-size:.95rem;color:var(--muted);margin-top:2px;}
+  .badge{margin-left:auto;background:var(--accent);color:#fff;font-weight:800;font-size:.8rem;padding:6px 14px;border-radius:20px;}
+  .layout{display:grid;grid-template-columns:1fr 1fr;gap:0;height:calc(100vh - 97px);}
+  .lesson-panel{background:var(--panel);border-right:2px solid var(--border);overflow-y:auto;padding:28px 28px 40px;display:flex;flex-direction:column;gap:24px;}
+  .step-card{background:var(--panel2);border:2px solid var(--border);border-radius:14px;overflow:hidden;}
+  .step-card.active{border-color:var(--accent);}.step-card.done{border-color:#3a6e3a;opacity:.75;}
+  .step-header{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;user-select:none;}
+  .step-num{width:32px;height:32px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1rem;color:var(--muted);flex-shrink:0;}
+  .step-card.active .step-num{background:var(--accent);color:#fff;}.step-card.done .step-num{background:var(--success);color:#fff;}
+  .step-title{font-weight:800;font-size:1rem;}.step-emoji{font-size:1.3rem;margin-left:auto;}
+  .step-body{padding:0 18px 18px;display:none;flex-direction:column;gap:14px;}
+  .step-card.active .step-body{display:flex;}
+  .step-body p{font-size:.92rem;color:var(--muted);line-height:1.6;}.step-body p strong{color:var(--text);}
+  .code-label{font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
+  .editor-wrap{border-radius:10px;overflow:hidden;border:2px solid var(--border);}.editor-wrap:focus-within{border-color:var(--accent);}
+  textarea{width:100%;background:#0d1a0d;color:#a8d8a8;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.6;padding:14px;border:none;resize:vertical;min-height:220px;outline:none;}
+  .btn-run{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s,transform .1s;align-self:flex-start;}
+  .btn-run:hover{background:#6ec83d;}.btn-run:active{transform:scale(.97);}
+  .btn-stop{background:#8B2020;color:#fff;border:none;border-radius:10px;padding:12px 24px;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;display:none;align-items:center;gap:8px;align-self:flex-start;}
+  .btn-stop:hover{background:#b02020;}
+  .btn-next{background:var(--gold);color:#1a1a00;border:none;border-radius:10px;padding:11px 22px;font-family:'Fredoka One',cursive;font-size:1rem;cursor:pointer;display:flex;align-items:center;gap:6px;align-self:flex-end;}
+  .btn-next:hover{background:#ffe040;}
+  .error-box{background:#2e0e0e;border:1.5px solid var(--red);border-radius:8px;padding:10px 14px;font-size:.82rem;color:#f08080;display:none;font-family:monospace;}
+  .canvas-panel{background:#0a120a;display:flex;flex-direction:column;}
+  .canvas-toolbar{background:var(--panel2);border-bottom:2px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:10px;font-size:.85rem;color:var(--muted);font-weight:700;}
+  .dot{width:10px;height:10px;border-radius:50%;}
+  .canvas-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:14px;}
+  canvas{border:3px solid var(--border);border-radius:10px;image-rendering:pixelated;box-shadow:0 0 40px #00000080;max-width:100%;}
+  .key-hint{display:flex;gap:8px;align-items:center;font-size:.8rem;color:var(--muted);}
+  .key{background:var(--panel2);border:2px solid var(--border);border-radius:6px;padding:4px 10px;font-family:'Fredoka One',cursive;font-size:.9rem;color:var(--text);}
+  .fun-fact{background:#1a2e1a;border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 14px;font-size:.85rem;color:#d4c878;}
+  .fun-fact strong{display:block;margin-bottom:3px;}
+  .progress-bar-wrap{padding:0 0 6px;}
+  .progress-bar-track{background:var(--border);border-radius:10px;height:8px;overflow:hidden;}
+  .progress-bar-fill{background:linear-gradient(90deg,var(--accent),var(--gold));height:100%;border-radius:10px;transition:width .4s ease;}
+  .progress-label{font-size:.78rem;color:var(--muted);margin-bottom:6px;font-weight:700;}
+  .celebrate{text-align:center;padding:10px;font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--gold);animation:pop .4s ease;display:none;}
+  @keyframes pop{0%{transform:scale(.7);opacity:0;}70%{transform:scale(1.1);}100%{transform:scale(1);opacity:1;}}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-icon">💥</div>
+  <div><h1>Mission 5 — Game Logic!</h1><p>Collision detection, collectibles, and a score counter</p></div>
+  <div class="badge">⭐ MISSION 5 OF 6</div>
+</header>
+<div class="layout">
+<div class="lesson-panel">
+  <div class="progress-bar-wrap">
+    <div class="progress-label" id="progressLabel">Step 1 of 4</div>
+    <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="step-card active" id="card-1">
+    <div class="step-header" onclick="toggleCard(1)"><div class="step-num">1</div><div class="step-title">What is Collision?</div><div class="step-emoji">💥</div></div>
+    <div class="step-body">
+      <p>In games, a <strong>collision</strong> is when two things touch or overlap. We detect it by checking if their rectangular areas overlap.<br><br>
+      Two rectangles collide when: they overlap on <strong>both</strong> the X axis AND the Y axis at the same time. The function below returns <code>true</code> if they touch!</p>
+      <div class="fun-fact"><strong>📦 AABB!</strong> This is called "Axis-Aligned Bounding Box" collision — the most common collision method in 2D games. Minecraft uses it for every block!</div>
+      <div class="code-label">Collision detection function ↓</div>
+      <div class="editor-wrap"><textarea id="code-1" spellcheck="false">const canvas = document.getElementById('world') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+
+// Collision check: do two rectangles overlap?
+function collides(ax: number, ay: number, aw: number, ah: number,
+                  bx: number, by: number, bw: number, bh: number): boolean {
+  return ax < bx + bw &&  // A's left is left of B's right
+         ax + aw > bx &&  // A's right is right of B's left
+         ay < by + bh &&  // A's top is above B's bottom
+         ay + ah > by;    // A's bottom is below B's top
+}
+
+// Test it — draw two boxes and check if they collide
+const box1 = { x: 60, y: 120, w: 80, h: 80 };
+const box2 = { x: 120, y: 140, w: 80, h: 80 }; // overlapping!
+
+ctx.fillStyle = '#4169E1';
+ctx.fillRect(box1.x, box1.y, box1.w, box1.h);
+ctx.fillStyle = '#e05252';
+ctx.fillRect(box2.x, box2.y, box2.w, box2.h);
+
+const touching = collides(box1.x, box1.y, box1.w, box1.h,
+                           box2.x, box2.y, box2.w, box2.h);
+
+ctx.fillStyle = '#fff';
+ctx.font = 'bold 18px Nunito';
+ctx.fillText(touching ? '💥 COLLISION!' : '✅ No collision', 60, 260);</textarea></div>
+      <div class="error-box" id="err-1"></div>
+      <button class="btn-run" onclick="runCode(1)">▶ Run Code!</button>
+      <button class="btn-next" id="next-1" style="display:none" onclick="goNext(1)">Got it! Next Step →</button>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-2">
+    <div class="step-header" onclick="toggleCard(2)"><div class="step-num">2</div><div class="step-title">Collect Gold Gems!</div><div class="step-emoji">💎</div></div>
+    <div class="step-body">
+      <p>Let's add <strong>collectible gems</strong>! We store gems in an <strong>array</strong>. Each gem has a position and a <code>collected</code> flag. When the player touches a gem, we mark it collected and add to the score.<br><br>
+      This is the core mechanic of almost every game!</p>
+      <div class="fun-fact"><strong>🎮 Core loop!</strong> "Collect things to get points" is the core loop of Pac-Man, Mario, Minecraft, and almost every game ever made!</div>
+      <div class="code-label">Click canvas, use arrows, collect gems! ↓</div>
+      <div class="editor-wrap"><textarea id="code-2" spellcheck="false">const canvas = document.getElementById('world') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+const keys: Record<string, boolean> = {};
+document.addEventListener('keydown', e => { keys[e.key] = true; });
+document.addEventListener('keyup',   e => { keys[e.key] = false; });
+
+let playerX = 20, playerY = 200, score = 0;
+const SPEED = 3;
+
+// Gems to collect!
+const gems = [
+  { x: 80,  y: 220, collected: false },
+  { x: 150, y: 180, collected: false },
+  { x: 230, y: 220, collected: false },
+  { x: 270, y: 160, collected: false },
+];
+
+function collides(ax,ay,aw,ah,bx,by,bw,bh){
+  return ax<bx+bw && ax+aw>bx && ay<by+bh && ay+ah>by;
+}
+
+function gameLoop() {
+  // Move player
+  if (keys['ArrowLeft']  && playerX > 0)               playerX -= SPEED;
+  if (keys['ArrowRight'] && playerX < canvas.width-40)  playerX += SPEED;
+  if (keys['ArrowUp']    && playerY > 0)                playerY -= SPEED;
+  if (keys['ArrowDown']  && playerY < canvas.height-104)playerY += SPEED;
+
+  // Check gem collisions
+  gems.forEach(gem => {
+    if (!gem.collected && collides(playerX,playerY,40,104, gem.x,gem.y,24,24)) {
+      gem.collected = true;
+      score += 10;
+    }
+  });
+
+  // Draw world
+  ctx.fillStyle = '#87CEEB'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = '#5DA832'; ctx.fillRect(0,280,canvas.width,40);
+
+  // Draw gems
+  gems.forEach(gem => {
+    if (!gem.collected) {
+      ctx.fillStyle = '#FFD700';
+      ctx.fillRect(gem.x, gem.y, 24, 24);
+      ctx.fillStyle = '#fff8';
+      ctx.fillRect(gem.x+4, gem.y+4, 8, 8);
+    }
+  });
+
+  // Draw player
+  ctx.fillStyle='#F4C27F'; ctx.fillRect(playerX,playerY,40,40);
+  ctx.fillStyle='#111';    ctx.fillRect(playerX+8,playerY+12,8,8); ctx.fillRect(playerX+24,playerY+12,8,8);
+  ctx.fillStyle='#4169E1'; ctx.fillRect(playerX,playerY+42,40,35);
+  ctx.fillStyle='#2F4F8F'; ctx.fillRect(playerX,playerY+79,18,25); ctx.fillRect(playerX+22,playerY+79,18,25);
+
+  // Draw score
+  ctx.fillStyle='#FFD700'; ctx.font='bold 20px Fredoka One,cursive';
+  ctx.fillText('⭐ Score: '+score, 10, 30);
+
+  requestAnimationFrame(gameLoop);
+}
+gameLoop();</textarea></div>
+      <div class="error-box" id="err-2"></div>
+      <div class="btn-row">
+        <button class="btn-run" onclick="runCode(2)">▶ Run &amp; Play!</button>
+        <button class="btn-stop" id="stop-2" onclick="stopCode()">■ Stop</button>
+      </div>
+      <button class="btn-next" id="next-2" style="display:none" onclick="goNext(2)">Collecting! Next Step →</button>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-3">
+    <div class="step-header" onclick="toggleCard(3)"><div class="step-num">3</div><div class="step-title">Add a Wall to Block the Player</div><div class="step-emoji">🧱</div></div>
+    <div class="step-body">
+      <p>Now let's add a <strong>wall</strong> the player can't walk through! We check if the player's <em>new</em> position would collide with the wall, and only allow the move if it doesn't.<br><br>
+      This is how Minecraft stops you from walking through blocks!</p>
+      <div class="fun-fact"><strong>🕹️ Predictive collision!</strong> We check the future position <em>before</em> moving. If it would collide, we cancel the move. This is called "predictive" or "speculative" collision.</div>
+      <div class="code-label">Wall collision — can't walk through! ↓</div>
+      <div class="editor-wrap"><textarea id="code-3" spellcheck="false">const canvas = document.getElementById('world') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+const keys: Record<string, boolean> = {};
+document.addEventListener('keydown', e => { keys[e.key] = true; });
+document.addEventListener('keyup',   e => { keys[e.key] = false; });
+
+let playerX = 20, playerY = 180, score = 0;
+const SPEED = 3;
+
+// A wall in the middle of the world!
+const wall = { x: 130, y: 100, w: 30, h: 200 };
+const gems = [
+  { x: 220, y: 150, collected: false },
+  { x: 260, y: 220, collected: false },
+];
+
+function collides(ax,ay,aw,ah,bx,by,bw,bh){
+  return ax<bx+bw&&ax+aw>bx&&ay<by+bh&&ay+ah>by;
+}
+
+function gameLoop() {
+  let newX = playerX, newY = playerY;
+  if (keys['ArrowLeft'])  newX -= SPEED;
+  if (keys['ArrowRight']) newX += SPEED;
+  if (keys['ArrowUp'])    newY -= SPEED;
+  if (keys['ArrowDown'])  newY += SPEED;
+
+  // Only move if we WON'T hit the wall
+  if (!collides(newX, playerY, 40, 104, wall.x, wall.y, wall.w, wall.h) &&
+      newX >= 0 && newX <= canvas.width - 40) playerX = newX;
+  if (!collides(playerX, newY, 40, 104, wall.x, wall.y, wall.w, wall.h) &&
+      newY >= 0 && newY <= canvas.height - 104) playerY = newY;
+
+  gems.forEach(g => {
+    if(!g.collected && collides(playerX,playerY,40,104,g.x,g.y,24,24)){g.collected=true;score+=10;}
+  });
+
+  // Draw
+  ctx.fillStyle='#87CEEB'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#5DA832'; ctx.fillRect(0,280,canvas.width,40);
+  ctx.fillStyle='#888';    ctx.fillRect(wall.x,wall.y,wall.w,wall.h); // wall!
+  gems.forEach(g=>{ if(!g.collected){ctx.fillStyle='#FFD700';ctx.fillRect(g.x,g.y,24,24);}});
+  ctx.fillStyle='#F4C27F'; ctx.fillRect(playerX,playerY,40,40);
+  ctx.fillStyle='#111';    ctx.fillRect(playerX+8,playerY+12,8,8);ctx.fillRect(playerX+24,playerY+12,8,8);
+  ctx.fillStyle='#4169E1'; ctx.fillRect(playerX,playerY+42,40,35);
+  ctx.fillStyle='#2F4F8F'; ctx.fillRect(playerX,playerY+79,18,25);ctx.fillRect(playerX+22,playerY+79,18,25);
+  ctx.fillStyle='#FFD700'; ctx.font='bold 20px Fredoka One,cursive';
+  ctx.fillText('⭐ Score: '+score, 10, 30);
+
+  requestAnimationFrame(gameLoop);
+}
+gameLoop();</textarea></div>
+      <div class="error-box" id="err-3"></div>
+      <div class="btn-row">
+        <button class="btn-run" onclick="runCode(3)">▶ Run &amp; Play!</button>
+        <button class="btn-stop" id="stop-3" onclick="stopCode()">■ Stop</button>
+      </div>
+      <button class="btn-next" id="next-3" style="display:none" onclick="goNext(3)">Solid! Final Step →</button>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-4">
+    <div class="step-header" onclick="toggleCard(4)"><div class="step-num">4</div><div class="step-title">🏆 Win Condition!</div><div class="step-emoji">🏆</div></div>
+    <div class="step-body">
+      <p>A game needs a <strong>win condition</strong> — something to achieve! When the player collects all gems, we show a WIN screen.<br><br>
+      We also add a <strong>finish line</strong> — a special zone to reach. This is the last piece that makes it a <em>real game</em>!</p>
+      <div class="fun-fact"><strong>🎯 Game design!</strong> Every great game has a clear goal. "Collect all gems AND reach the exit" is the basis of Mario, Zelda, Minecraft Dungeons, and thousands of others!</div>
+      <div class="code-label">A complete mini-game — collect all gems and reach the exit! ↓</div>
+      <div class="editor-wrap"><textarea id="code-4" spellcheck="false">const canvas = document.getElementById('world') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+const keys: Record<string, boolean> = {};
+document.addEventListener('keydown', e=>{ keys[e.key]=true; });
+document.addEventListener('keyup',   e=>{ keys[e.key]=false; });
+
+let playerX=20, playerY=210, score=0, gameWon=false;
+const SPEED=3;
+const wall={ x:140, y:80, w:30, h:210 };
+const exit={ x:270, y:220, w:40, h:60 };
+const gems=[
+  {x:200,y:130,collected:false},{x:240,y:200,collected:false},
+  {x:170,y:240,collected:false},{x:270,y:150,collected:false},
+];
+
+function collides(ax,ay,aw,ah,bx,by,bw,bh){return ax<bx+bw&&ax+aw>bx&&ay<by+bh&&ay+ah>by;}
+
+function gameLoop() {
+  if (!gameWon) {
+    let nx=playerX, ny=playerY;
+    if(keys['ArrowLeft'])  nx-=SPEED;
+    if(keys['ArrowRight']) nx+=SPEED;
+    if(keys['ArrowUp'])    ny-=SPEED;
+    if(keys['ArrowDown'])  ny+=SPEED;
+    if(!collides(nx,playerY,40,104,wall.x,wall.y,wall.w,wall.h)&&nx>=0&&nx<=canvas.width-40) playerX=nx;
+    if(!collides(playerX,ny,40,104,wall.x,wall.y,wall.w,wall.h)&&ny>=0&&ny<=canvas.height-104) playerY=ny;
+    gems.forEach(g=>{if(!g.collected&&collides(playerX,playerY,40,104,g.x,g.y,24,24)){g.collected=true;score+=10;}});
+    const allGems=gems.every(g=>g.collected);
+    if(allGems && collides(playerX,playerY,40,104,exit.x,exit.y,exit.w,exit.h)) gameWon=true;
+  }
+
+  ctx.fillStyle='#87CEEB'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#5DA832'; ctx.fillRect(0,280,canvas.width,40);
+  ctx.fillStyle='#888';    ctx.fillRect(wall.x,wall.y,wall.w,wall.h);
+
+  // Exit door (glows when all gems collected)
+  ctx.fillStyle=gems.every(g=>g.collected)?'#00FF88':'#444';
+  ctx.fillRect(exit.x,exit.y,exit.w,exit.h);
+  ctx.fillStyle='#fff'; ctx.font='12px Nunito'; ctx.textAlign='center';
+  ctx.fillText('EXIT',exit.x+exit.w/2,exit.y+exit.h/2+4); ctx.textAlign='left';
+
+  gems.forEach(g=>{
+    if(!g.collected){ctx.fillStyle='#FFD700';ctx.fillRect(g.x,g.y,24,24);ctx.fillStyle='#fff8';ctx.fillRect(g.x+4,g.y+4,8,8);}
+  });
+  ctx.fillStyle='#F4C27F'; ctx.fillRect(playerX,playerY,40,40);
+  ctx.fillStyle='#111';    ctx.fillRect(playerX+8,playerY+12,8,8);ctx.fillRect(playerX+24,playerY+12,8,8);
+  ctx.fillStyle='#4169E1'; ctx.fillRect(playerX,playerY+42,40,35);
+  ctx.fillStyle='#2F4F8F'; ctx.fillRect(playerX,playerY+79,18,25);ctx.fillRect(playerX+22,playerY+79,18,25);
+
+  ctx.fillStyle='#FFD700'; ctx.font='bold 18px Fredoka One,cursive';
+  ctx.fillText('⭐ '+score, 10, 28);
+  const rem=gems.filter(g=>!g.collected).length;
+  ctx.fillStyle='#fff'; ctx.font='13px Nunito';
+  ctx.fillText(rem>0?'Collect '+rem+' more gem'+(rem>1?'s':'')+'!':'Now reach the EXIT! →', 10, 52);
+
+  if (gameWon) {
+    ctx.fillStyle='#000a'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#FFD700'; ctx.font='bold 36px Fredoka One,cursive'; ctx.textAlign='center';
+    ctx.fillText('🏆 YOU WIN! 🏆', canvas.width/2, 140);
+    ctx.fillStyle='#fff'; ctx.font='22px Nunito';
+    ctx.fillText('Score: '+score, canvas.width/2, 185);
+    ctx.textAlign='left';
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+gameLoop();</textarea></div>
+      <div class="error-box" id="err-4"></div>
+      <div class="btn-row">
+        <button class="btn-run" onclick="runCode(4)">▶ Run &amp; Play!</button>
+        <button class="btn-stop" id="stop-4" onclick="stopCode()">■ Stop</button>
+      </div>
+      <div class="celebrate" id="celebrate">🎉 MISSION 5 COMPLETE! You built a real game! 💥</div>
+    </div>
+  </div>
+</div>
+
+<div class="canvas-panel">
+  <div class="canvas-toolbar">
+    <div class="dot" style="background:#e05252"></div><div class="dot" style="background:#e0a052"></div><div class="dot" style="background:#5DA832"></div>
+    <span style="margin-left:6px">💥 Your Game</span>
+    <span style="margin-left:auto;font-size:.78rem;opacity:.6">320 × 320 px</span>
+  </div>
+  <div class="canvas-area">
+    <canvas id="world" width="320" height="320" tabindex="0" style="outline:none;cursor:pointer"></canvas>
+    <div class="key-hint">
+      <span class="key">←</span><span class="key">↑</span><span class="key">↓</span><span class="key">→</span>
+      <span style="margin-left:4px">Click canvas first, then use arrow keys!</span>
+    </div>
+  </div>
+</div>
+</div>
+<script>
+let activeListeners=[];
+function stripTypes(c){return c.replace(/\bas\s+\w[\w<>\[\], ]*/g,'').replace(/!\s*;/g,';').replace(/!$/gm,'').replace(/!(\s*[.[(])/g,'$1').replace(/:\s*Record<[^>]+>/g,'').replace(/:\s*boolean/g,'').replace(/:\s*number/g,'').replace(/:\s*string/g,'').replace(/:\s*void/g,'');}
+function clearCanvas(){const cv=document.getElementById('world');const ctx=cv.getContext('2d');ctx.fillStyle='#0a120a';ctx.fillRect(0,0,cv.width,cv.height);}
+function stopCode(){activeListeners.forEach(({type,fn})=>document.removeEventListener(type,fn));activeListeners=[];clearCanvas();document.querySelectorAll('.btn-stop').forEach(b=>b.style.display='none');}
+function runCode(step){
+  stopCode();
+  const ta=document.getElementById('code-'+step),err=document.getElementById('err-'+step),nxt=document.getElementById('next-'+step);
+  clearCanvas();err.style.display='none';
+  const origAdd=document.addEventListener.bind(document);
+  const patchedAdd=(type,fn,opts)=>{origAdd(type,fn,opts);activeListeners.push({type,fn});};
+  try{
+    new Function('document_addEventListener_patched',stripTypes(ta.value).replace(/document\.addEventListener/g,'document_addEventListener_patched'))(patchedAdd);
+    const sb=document.getElementById('stop-'+step);if(sb)sb.style.display='flex';
+    if(step<4&&nxt)nxt.style.display='flex';
+    if(step===4)document.getElementById('celebrate').style.display='block';
+    document.getElementById('world').focus();
+  }catch(e){err.textContent='❌ Oops! '+e.message;err.style.display='block';}
+}
+function goNext(step){stopCode();document.getElementById('card-'+step).classList.replace('active','done');const n=document.getElementById('card-'+(step+1));if(n){n.classList.add('active');n.scrollIntoView({behavior:'smooth',block:'start'});}updateProgress(step+1,4);}
+function toggleCard(s){const c=document.getElementById('card-'+s);if(!c.classList.contains('active'))c.classList.add('active');}
+function updateProgress(c,t){document.getElementById('progressFill').style.width=((c-1)/t*100)+'%';document.getElementById('progressLabel').textContent='Step '+Math.min(c,t)+' of '+t;}
+clearCanvas();updateProgress(1,4);
+</script>
+</body>
+</html>

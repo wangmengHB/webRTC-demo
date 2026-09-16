@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mission 4 — A Hero Appears! 🧑</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+  :root{--grass:#5DA832;--dirt:#8B5E3C;--stone:#888;--sky:#87CEEB;--night:#1a1a2e;--gold:#FFD700;--panel:#1e2a1e;--panel2:#253325;--accent:#5DA832;--text:#e8f5e9;--muted:#a5c8a5;--success:#69D43B;--border:#3a5a3a;--red:#e05252;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito',sans-serif;background:var(--night);color:var(--text);min-height:100vh;}
+  header{background:linear-gradient(135deg,#1a2e1a,#253325);border-bottom:3px solid var(--accent);padding:20px 32px;display:flex;align-items:center;gap:18px;}
+  .header-icon{font-size:48px;line-height:1;filter:drop-shadow(0 0 10px #5DA83280);}
+  header h1{font-family:'Fredoka One',cursive;font-size:2rem;color:var(--gold);text-shadow:0 0 20px #FFD70060;}
+  header p{font-size:.95rem;color:var(--muted);margin-top:2px;}
+  .badge{margin-left:auto;background:var(--accent);color:#fff;font-weight:800;font-size:.8rem;padding:6px 14px;border-radius:20px;}
+  .layout{display:grid;grid-template-columns:1fr 1fr;gap:0;height:calc(100vh - 97px);}
+  .lesson-panel{background:var(--panel);border-right:2px solid var(--border);overflow-y:auto;padding:28px 28px 40px;display:flex;flex-direction:column;gap:24px;}
+  .step-card{background:var(--panel2);border:2px solid var(--border);border-radius:14px;overflow:hidden;}
+  .step-card.active{border-color:var(--accent);}.step-card.done{border-color:#3a6e3a;opacity:.75;}
+  .step-header{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;user-select:none;}
+  .step-num{width:32px;height:32px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-family:'Fredoka One',cursive;font-size:1rem;color:var(--muted);flex-shrink:0;}
+  .step-card.active .step-num{background:var(--accent);color:#fff;}.step-card.done .step-num{background:var(--success);color:#fff;}
+  .step-title{font-weight:800;font-size:1rem;}.step-emoji{font-size:1.3rem;margin-left:auto;}
+  .step-body{padding:0 18px 18px;display:none;flex-direction:column;gap:14px;}
+  .step-card.active .step-body{display:flex;}
+  .step-body p{font-size:.92rem;color:var(--muted);line-height:1.6;}.step-body p strong{color:var(--text);}
+  .code-label{font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
+  .editor-wrap{border-radius:10px;overflow:hidden;border:2px solid var(--border);}.editor-wrap:focus-within{border-color:var(--accent);}
+  textarea{width:100%;background:#0d1a0d;color:#a8d8a8;font-family:'Courier New',monospace;font-size:.82rem;line-height:1.6;padding:14px;border:none;resize:vertical;min-height:200px;outline:none;}
+  .btn-run{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s,transform .1s;align-self:flex-start;}
+  .btn-run:hover{background:#6ec83d;}.btn-run:active{transform:scale(.97);}
+  .btn-stop{background:#8B2020;color:#fff;border:none;border-radius:10px;padding:12px 24px;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;display:none;align-items:center;gap:8px;align-self:flex-start;}
+  .btn-stop:hover{background:#b02020;}
+  .btn-next{background:var(--gold);color:#1a1a00;border:none;border-radius:10px;padding:11px 22px;font-family:'Fredoka One',cursive;font-size:1rem;cursor:pointer;display:flex;align-items:center;gap:6px;align-self:flex-end;}
+  .btn-next:hover{background:#ffe040;}
+  .error-box{background:#2e0e0e;border:1.5px solid var(--red);border-radius:8px;padding:10px 14px;font-size:.82rem;color:#f08080;display:none;font-family:monospace;}
+  .canvas-panel{background:#0a120a;display:flex;flex-direction:column;}
+  .canvas-toolbar{background:var(--panel2);border-bottom:2px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:10px;font-size:.85rem;color:var(--muted);font-weight:700;}
+  .dot{width:10px;height:10px;border-radius:50%;}
+  .canvas-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:14px;}
+  canvas{border:3px solid var(--border);border-radius:10px;image-rendering:pixelated;box-shadow:0 0 40px #00000080;max-width:100%;}
+  .key-hint{display:flex;gap:8px;align-items:center;font-size:.8rem;color:var(--muted);}
+  .key{background:var(--panel2);border:2px solid var(--border);border-radius:6px;padding:4px 10px;font-family:'Fredoka One',cursive;font-size:.9rem;color:var(--text);}
+  .fun-fact{background:#1a2e1a;border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 14px;font-size:.85rem;color:#d4c878;}
+  .fun-fact strong{display:block;margin-bottom:3px;}
+  .progress-bar-wrap{padding:0 0 6px;}
+  .progress-bar-track{background:var(--border);border-radius:10px;height:8px;overflow:hidden;}
+  .progress-bar-fill{background:linear-gradient(90deg,var(--accent),var(--gold));height:100%;border-radius:10px;transition:width .4s ease;}
+  .progress-label{font-size:.78rem;color:var(--muted);margin-bottom:6px;font-weight:700;}
+  .celebrate{text-align:center;padding:10px;font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--gold);animation:pop .4s ease;display:none;}
+  @keyframes pop{0%{transform:scale(.7);opacity:0;}70%{transform:scale(1.1);}100%{transform:scale(1);opacity:1;}}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-icon">🧑</div>
+  <div><h1>Mission 4 — A Hero Appears!</h1><p>Draw your player character and move it with arrow keys</p></div>
+  <div class="badge">⭐ MISSION 4 OF 6</div>
+</header>
+<div class="layout">
+<div class="lesson-panel">
+  <div class="progress-bar-wrap">
+    <div class="progress-label" id="progressLabel">Step 1 of 4</div>
+    <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="step-card active" id="card-1">
+    <div class="step-header" onclick="toggleCard(1)"><div class="step-num">1</div><div class="step-title">Draw the Player</div><div class="step-emoji">🧍</div></div>
+    <div class="step-body">
+      <p>Every game needs a <strong>player</strong>! We'll draw Steve as a simple blocky character — body, head, and a little face. We store the player's position in <strong>variables</strong> so we can move it later.</p>
+      <div class="fun-fact"><strong>🎨 Pixel art!</strong> Early game characters like Mario and Steve were drawn with just a few colored rectangles. Simple shapes = fast code!</div>
+      <div class="code-label">Draw your hero ↓</div>
+      <div class="editor-wrap"><textarea id="code-1" spellcheck="false">const canvas = document.getElementById('world') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+
+// Player position stored in variables
+let playerX = 130;
+let playerY = 200;
+
+// Draw background
+ctx.fillStyle = '#87CEEB';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+ctx.fillStyle = '#5DA832';
+ctx.fillRect(0, 280, canvas.width, 40);
+
+// Draw player — a blocky Steve!
+// Head
+ctx.fillStyle = '#F4C27F'; // skin color
+ctx.fillRect(playerX, playerY, 40, 40);
+// Eyes
+ctx.fillStyle = '#1a1a1a';
+ctx.fillRect(playerX + 8,  playerY + 12, 8, 8);
+ctx.fillRect(playerX + 24, playerY + 12, 8, 8);
+// Body (blue shirt)
+ctx.fillStyle = '#4169E1';
+ctx.fillRect(playerX, playerY + 42, 40, 35);
+// Legs
+ctx.fillStyle = '#2F4F8F';
+ctx.fillRect(playerX,      playerY + 79, 18, 25);
+ctx.fillRect(playerX + 22, playerY + 79, 18, 25);</textarea></div>
+      <div class="error-box" id="err-1"></div>
+      <button class="btn-run" onclick="runCode(1)">▶ Run Code!</button>
+      <button class="btn-next" id="next-1" style="display:none" onclick="goNext(1)">He's alive! Next Step →</button>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-2">
+    <div class="step-header" onclick="toggleCard(2)"><div class="step-num">2</div><div class="step-title">Listen for Keys</div><div class="step-emoji">⌨️</div></div>
+    <div class="step-body">
+      <p>Now let's make the player <strong>move</strong>! We use <code>addEventListener</code> to listen for key presses. When the player presses an arrow key, we change <code>playerX</code> or <code>playerY</code>.<br><br>
+      After moving, we <strong>redraw the whole canvas</strong> — this is called a "render loop" and it's how every game works!</p>
+      <div class="fun-fact"><strong>🕹️ Game loop!</strong> Real games redraw the screen 60 times per second. Each frame clears the old positions and draws new ones — like a flipbook!</div>
+      <div class="code-label">Click the canvas first, then use arrow keys! ↓</div>
+      <div class="editor-wrap"><textarea id="code-2" spellcheck="false">const canvas = document.getElementById('world') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+
+let playerX = 130;
+let playerY = 200;
+const SPEED = 8;
+
+function drawWorld() {
+  // Clear and redraw everything
+  ctx.fillStyle = '#87CEEB';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#5DA832';
+  ctx.fillRect(0, 280, canvas.width, 40);
+
+  // Draw player
+  ctx.fillStyle = '#F4C27F';
+  ctx.fillRect(playerX, playerY, 40, 40);
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(playerX+8, playerY+12, 8, 8);
+  ctx.fillRect(playerX+24, playerY+12, 8, 8);
+  ctx.fillStyle = '#4169E1';
+  ctx.fillRect(playerX, playerY+42, 40, 35);
+  ctx.fillStyle = '#2F4F8F';
+  ctx.fillRect(playerX, playerY+79, 18, 25);
+  ctx.fillRect(playerX+22, playerY+79, 18, 25);
+}
+
+// Listen for arrow key presses
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'ArrowLeft')  playerX -= SPEED;
+  if (event.key === 'ArrowRight') playerX += SPEED;
+  if (event.key === 'ArrowUp')    playerY -= SPEED;
+  if (event.key === 'ArrowDown')  playerY += SPEED;
+  drawWorld(); // redraw after every move!
+});
+
+drawWorld(); // draw the first frame!</textarea></div>
+      <div class="error-box" id="err-2"></div>
+      <div class="btn-row">
+        <button class="btn-run" onclick="runCode(2)">▶ Run &amp; Play!</button>
+        <button class="btn-stop" id="stop-2" onclick="stopCode()">■ Stop</button>
+      </div>
+      <button class="btn-next" id="next-2" style="display:none" onclick="goNext(2)">Moving! Next Step →</button>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-3">
+    <div class="step-header" onclick="toggleCard(3)"><div class="step-num">3</div><div class="step-title">Stay Inside the World</div><div class="step-emoji">🚧</div></div>
+    <div class="step-body">
+      <p>Right now the player can walk <strong>off the screen</strong>! We need to add <strong>boundary checks</strong> — if statements that stop the player from going too far.<br><br>
+      We check: is the new position outside the canvas? If yes, don't move there!</p>
+      <div class="fun-fact"><strong>🧱 Boundaries everywhere!</strong> In every game, invisible "walls" stop characters from falling out of the world. Even Minecraft has a world border!</div>
+      <div class="code-label">Add boundary checks ↓</div>
+      <div class="editor-wrap"><textarea id="code-3" spellcheck="false">const canvas = document.getElementById('world') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+
+let playerX = 130;
+let playerY = 175;
+const SPEED = 8;
+const PLAYER_W = 40;
+const PLAYER_H = 104; // total height
+
+function drawWorld() {
+  ctx.fillStyle = '#87CEEB';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#5DA832';
+  ctx.fillRect(0, 280, canvas.width, 40);
+  ctx.fillStyle = '#F4C27F';
+  ctx.fillRect(playerX, playerY, 40, 40);
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(playerX+8, playerY+12, 8, 8);
+  ctx.fillRect(playerX+24, playerY+12, 8, 8);
+  ctx.fillStyle = '#4169E1';
+  ctx.fillRect(playerX, playerY+42, 40, 35);
+  ctx.fillStyle = '#2F4F8F';
+  ctx.fillRect(playerX, playerY+79, 18, 25);
+  ctx.fillRect(playerX+22, playerY+79, 18, 25);
+}
+
+document.addEventListener('keydown', (event) => {
+  let newX = playerX;
+  let newY = playerY;
+
+  if (event.key === 'ArrowLeft')  newX -= SPEED;
+  if (event.key === 'ArrowRight') newX += SPEED;
+  if (event.key === 'ArrowUp')    newY -= SPEED;
+  if (event.key === 'ArrowDown')  newY += SPEED;
+
+  // Boundary checks — don't move if out of bounds!
+  if (newX >= 0 && newX + PLAYER_W <= canvas.width)  playerX = newX;
+  if (newY >= 0 && newY + PLAYER_H <= canvas.height) playerY = newY;
+
+  drawWorld();
+});
+
+drawWorld();</textarea></div>
+      <div class="error-box" id="err-3"></div>
+      <div class="btn-row">
+        <button class="btn-run" onclick="runCode(3)">▶ Run &amp; Play!</button>
+        <button class="btn-stop" id="stop-3" onclick="stopCode()">■ Stop</button>
+      </div>
+      <button class="btn-next" id="next-3" style="display:none" onclick="goNext(3)">Great! Final Step →</button>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-4">
+    <div class="step-header" onclick="toggleCard(4)"><div class="step-num">4</div><div class="step-title">🏆 Smooth Movement!</div><div class="step-emoji">🎮</div></div>
+    <div class="step-body">
+      <p>The movement is a bit "jumpy" because we only move when a key is <em>pressed</em>. Real games use a <strong>game loop</strong> — code that runs 60 times per second using <code>requestAnimationFrame</code>.<br><br>
+      We track which keys are <strong>held down</strong> and move every frame. This feels much smoother!</p>
+      <div class="fun-fact"><strong>⚡ 60 FPS!</strong> "FPS" means frames per second. 60 FPS means the screen redraws 60 times every second — that's why smooth games feel so good!</div>
+      <div class="code-label">Smooth game loop — click canvas then use arrow keys! ↓</div>
+      <div class="editor-wrap"><textarea id="code-4" spellcheck="false">const canvas = document.getElementById('world') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d')!;
+
+let playerX = 130;
+let playerY = 175;
+const SPEED = 3;
+const keys: Record<string, boolean> = {};
+
+// Track which keys are held down
+document.addEventListener('keydown', e => { keys[e.key] = true; });
+document.addEventListener('keyup',   e => { keys[e.key] = false; });
+
+function drawWorld() {
+  // Move based on held keys
+  if (keys['ArrowLeft']  && playerX > 0)                     playerX -= SPEED;
+  if (keys['ArrowRight'] && playerX < canvas.width - 40)     playerX += SPEED;
+  if (keys['ArrowUp']    && playerY > 0)                     playerY -= SPEED;
+  if (keys['ArrowDown']  && playerY < canvas.height - 104)   playerY += SPEED;
+
+  // Draw world
+  ctx.fillStyle = '#87CEEB';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#5DA832';
+  ctx.fillRect(0, 280, canvas.width, 40);
+
+  // Draw player
+  ctx.fillStyle = '#F4C27F';
+  ctx.fillRect(playerX, playerY, 40, 40);
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(playerX+8, playerY+12, 8, 8);
+  ctx.fillRect(playerX+24, playerY+12, 8, 8);
+  ctx.fillStyle = '#4169E1';
+  ctx.fillRect(playerX, playerY+42, 40, 35);
+  ctx.fillStyle = '#2F4F8F';
+  ctx.fillRect(playerX, playerY+79, 18, 25);
+  ctx.fillRect(playerX+22, playerY+79, 18, 25);
+
+  // Call drawWorld again next frame (60 times/sec)
+  requestAnimationFrame(drawWorld);
+}
+
+drawWorld(); // start the game loop!</textarea></div>
+      <div class="error-box" id="err-4"></div>
+      <div class="btn-row">
+        <button class="btn-run" onclick="runCode(4)">▶ Run &amp; Play!</button>
+        <button class="btn-stop" id="stop-4" onclick="stopCode()">■ Stop</button>
+      </div>
+      <div class="celebrate" id="celebrate">🎉 MISSION 4 COMPLETE! Your hero can move! 🧑</div>
+    </div>
+  </div>
+</div>
+
+<div class="canvas-panel">
+  <div class="canvas-toolbar">
+    <div class="dot" style="background:#e05252"></div><div class="dot" style="background:#e0a052"></div><div class="dot" style="background:#5DA832"></div>
+    <span style="margin-left:6px">🧑 Your Game World</span>
+    <span style="margin-left:auto;font-size:.78rem;opacity:.6">320 × 320 px</span>
+  </div>
+  <div class="canvas-area">
+    <canvas id="world" width="320" height="320" tabindex="0" style="outline:none;cursor:pointer"></canvas>
+    <div class="key-hint">
+      <span class="key">←</span><span class="key">↑</span><span class="key">↓</span><span class="key">→</span>
+      <span style="margin-left:4px">Click the canvas first, then use arrow keys!</span>
+    </div>
+  </div>
+</div>
+</div>
+<script>
+let activeListeners = [];
+function stripTypes(c){return c.replace(/\bas\s+\w[\w<>\[\], ]*/g,'').replace(/!\s*;/g,';').replace(/!$/gm,'').replace(/!(\s*[.[(])/g,'$1').replace(/:\s*Record<[^>]+>/g,'').replace(/:\s*boolean/g,'').replace(/:\s*number/g,'').replace(/:\s*string/g,'').replace(/:\s*void/g,'');}
+function clearCanvas(){const cv=document.getElementById('world');const ctx=cv.getContext('2d');ctx.fillStyle='#0a120a';ctx.fillRect(0,0,cv.width,cv.height);}
+function stopCode(){
+  // Remove all listeners
+  activeListeners.forEach(({type,fn})=>document.removeEventListener(type,fn));
+  activeListeners=[];
+  clearCanvas();
+  document.querySelectorAll('.btn-stop').forEach(b=>b.style.display='none');
+}
+function runCode(step){
+  stopCode();
+  const ta=document.getElementById('code-'+step),err=document.getElementById('err-'+step),nxt=document.getElementById('next-'+step);
+  clearCanvas();err.style.display='none';
+  // Patch addEventListener to track listeners
+  const origAdd=document.addEventListener.bind(document);
+  const patchedAdd=(type,fn,opts)=>{origAdd(type,fn,opts);activeListeners.push({type,fn});};
+  try{
+    const fn=new Function('document_addEventListener_patched',stripTypes(ta.value).replace(/document\.addEventListener/g,'document_addEventListener_patched'));
+    fn(patchedAdd);
+    const stopBtn=document.getElementById('stop-'+step);
+    if(stopBtn)stopBtn.style.display='flex';
+    if(step<4&&nxt)nxt.style.display='flex';
+    if(step===4)document.getElementById('celebrate').style.display='block';
+    document.getElementById('world').focus();
+  }catch(e){err.textContent='❌ Oops! '+e.message;err.style.display='block';}
+}
+function goNext(step){
+  stopCode();
+  document.getElementById('card-'+step).classList.replace('active','done');
+  const n=document.getElementById('card-'+(step+1));
+  if(n){n.classList.add('active');n.scrollIntoView({behavior:'smooth',block:'start'});}
+  updateProgress(step+1,4);
+}
+function toggleCard(s){const c=document.getElementById('card-'+s);if(!c.classList.contains('active'))c.classList.add('active');}
+function updateProgress(c,t){document.getElementById('progressFill').style.width=((c-1)/t*100)+'%';document.getElementById('progressLabel').textContent='Step '+Math.min(c,t)+' of '+t;}
+clearCanvas();updateProgress(1,4);
+</script>
+</body>
+</html>
