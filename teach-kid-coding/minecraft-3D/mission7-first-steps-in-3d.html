@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mission 7 — First Steps in 3D! 🧊</title>
+<style>
+  @import url('./css2.css');
+  :root {
+    --night:#0d0d1a; --panel:#13131f; --panel2:#1a1a2e; --border:#2a2a4a;
+    --accent:#6c63ff; --gold:#FFD700; --text:#e8e8ff; --muted:#8888bb;
+    --success:#5DA832; --red:#e05252;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { height:100%; overflow:hidden; }
+  body { font-family:'Nunito',sans-serif; background:var(--night); color:var(--text); display:flex; flex-direction:column; }
+
+  header {
+    background:linear-gradient(135deg,#0d0d1a,#1a1a2e);
+    border-bottom:3px solid var(--accent);
+    padding:14px 28px; display:flex; align-items:center; gap:16px;
+    height:72px; flex-shrink:0;
+  }
+  .header-icon { font-size:38px; line-height:1; filter:drop-shadow(0 0 12px #6c63ff80); }
+  header h1 { font-family:'Fredoka One',cursive; font-size:1.6rem; color:var(--gold); text-shadow:0 0 20px #FFD70050; }
+  header p  { font-size:.82rem; color:var(--muted); margin-top:2px; }
+  .badge    { margin-left:auto; background:var(--accent); color:#fff; font-weight:800; font-size:.75rem; padding:6px 14px; border-radius:20px; white-space:nowrap; }
+
+  .layout { display:grid; grid-template-columns:420px 1fr; flex:1; min-height:0; }
+
+  /* ── LEFT PANEL ── */
+  .lesson-panel { background:var(--panel); border-right:2px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
+
+  .step-tabs { display:flex; border-bottom:2px solid var(--border); flex-shrink:0; overflow-x:auto; }
+  .step-tab  { padding:10px 13px; font-size:.75rem; font-weight:800; color:var(--muted); cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap; transition:color .15s,border-color .15s; flex-shrink:0; }
+  .step-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .step-tab.done   { color:var(--success); }
+
+  .steps-wrap { flex:1; overflow-y:auto; }
+  .step-content { display:none; padding:18px; flex-direction:column; gap:13px; }
+  .step-content.active { display:flex; }
+
+  .step-header-row { display:flex; align-items:center; gap:10px; }
+  .step-num-badge  { width:28px; height:28px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Fredoka One',cursive; font-size:.95rem; flex-shrink:0; }
+  .step-title { font-family:'Fredoka One',cursive; font-size:1.25rem; color:var(--gold); }
+  .step-desc  { font-size:.86rem; color:var(--muted); line-height:1.65; }
+  .step-desc strong { color:var(--text); }
+  .step-desc code   { background:#1a1a3a; padding:1px 6px; border-radius:4px; font-size:.8rem; color:#a8c8ff; }
+
+  .fun-fact { background:#1a1a2e; border-left:4px solid var(--gold); border-radius:0 8px 8px 0; padding:9px 13px; font-size:.8rem; color:#ccc878; line-height:1.5; }
+  .fun-fact strong { display:block; margin-bottom:3px; }
+
+  .concept-chips { display:flex; flex-wrap:wrap; gap:5px; }
+  .chip { background:#1a1a3a; border:1px solid var(--border); border-radius:20px; padding:3px 9px; font-size:.7rem; color:var(--muted); }
+
+  .code-label { font-size:.7rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.8px; margin-bottom:4px; }
+  .editor-wrap { border-radius:9px; overflow:hidden; border:2px solid var(--border); }
+  .editor-wrap:focus-within { border-color:var(--accent); }
+  textarea { width:100%; background:#080814; color:#b0b8ff; font-family:'Courier New',monospace; font-size:.76rem; line-height:1.6; padding:11px; border:none; resize:vertical; min-height:170px; outline:none; }
+
+  .btn-row { display:flex; gap:9px; flex-wrap:wrap; }
+  .btn-run  { background:var(--accent); color:#fff; border:none; border-radius:9px; padding:10px 18px; font-family:'Fredoka One',cursive; font-size:.95rem; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background .15s,transform .1s; }
+  .btn-run:hover  { background:#8078ff; }
+  .btn-run:active { transform:scale(.97); }
+  .btn-next { background:var(--gold); color:#1a1a00; border:none; border-radius:9px; padding:9px 16px; font-family:'Fredoka One',cursive; font-size:.9rem; cursor:pointer; display:none; align-items:center; gap:5px; }
+  .btn-next:hover { background:#ffe040; }
+  .btn-next.show  { display:flex; }
+
+  .error-box { background:#2e0e0e; border:1.5px solid var(--red); border-radius:7px; padding:8px 11px; font-size:.76rem; color:#f08080; display:none; font-family:monospace; white-space:pre-wrap; word-break:break-all; }
+  .celebrate { text-align:center; padding:7px; font-family:'Fredoka One',cursive; font-size:.95rem; color:var(--gold); animation:pop .4s ease; display:none; }
+  @keyframes pop { 0%{transform:scale(.7);opacity:0;} 70%{transform:scale(1.1);} 100%{transform:scale(1);opacity:1;} }
+
+  .progress-bar-wrap { padding:10px 18px 7px; flex-shrink:0; }
+  .progress-label     { font-size:.7rem; color:var(--muted); font-weight:700; margin-bottom:4px; }
+  .progress-bar-track { background:var(--border); border-radius:10px; height:5px; overflow:hidden; }
+  .progress-bar-fill  { background:linear-gradient(90deg,var(--accent),var(--gold)); height:100%; border-radius:10px; transition:width .4s ease; width:0%; }
+
+  /* ── RIGHT: Viewport ── */
+  .viewport-panel { background:#050508; display:flex; flex-direction:column; min-width:0; }
+  .viewport-toolbar { background:var(--panel2); border-bottom:2px solid var(--border); padding:8px 15px; display:flex; align-items:center; gap:9px; font-size:.8rem; color:var(--muted); font-weight:700; flex-shrink:0; }
+  .dot { width:10px; height:10px; border-radius:50%; }
+  .viewport-wrap { flex:1; position:relative; overflow:hidden; }
+
+  /* The placeholder overlay (NOT a canvas, just a div) */
+  #placeholder {
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:10px;
+    background:#080814; pointer-events:none;
+  }
+  #placeholder .ph-icon  { font-size:56px; opacity:.4; }
+  #placeholder .ph-title { font-family:'Fredoka One',cursive; font-size:1.3rem; color:var(--accent); opacity:.8; }
+  #placeholder .ph-sub   { font-size:.85rem; color:var(--muted); opacity:.7; }
+
+  /* The actual WebGL canvas — fills the wrapper */
+  #renderCanvas { position:absolute; inset:0; width:100% !important; height:100% !important; display:block; outline:none; }
+
+  .controls-hint { position:absolute; bottom:12px; left:50%; transform:translateX(-50%); background:rgba(13,13,26,.85); border:1px solid var(--border); border-radius:9px; padding:7px 14px; display:none; gap:12px; align-items:center; font-size:.72rem; color:var(--muted); pointer-events:none; white-space:nowrap; }
+  .controls-hint.show { display:flex; }
+  .key { background:var(--panel2); border:1px solid var(--border); border-radius:4px; padding:2px 6px; font-family:'Fredoka One',cursive; font-size:.76rem; color:var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-icon">🧊</div>
+  <div>
+    <h1>Mission 7 — First Steps in 3D!</h1>
+    <p>Enter the third dimension using Babylon.js — build a tiny walkable block world</p>
+  </div>
+  <div class="badge">🧊 MISSION 7 — 3D UNLOCKED</div>
+</header>
+
+<div class="layout">
+
+  <!-- ── LEFT: Lesson Steps ── -->
+  <div class="lesson-panel">
+    <div class="progress-bar-wrap">
+      <div class="progress-label" id="progressLabel">Step 1 of 5</div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="step-tabs">
+      <div class="step-tab active" id="tab-1" onclick="gotoStep(1)">1 · 3D Basics</div>
+      <div class="step-tab" id="tab-2" onclick="gotoStep(2)">2 · Your Cube</div>
+      <div class="step-tab" id="tab-3" onclick="gotoStep(3)">3 · Block Floor</div>
+      <div class="step-tab" id="tab-4" onclick="gotoStep(4)">4 · Walk Around</div>
+      <div class="step-tab" id="tab-5" onclick="gotoStep(5)">5 · Place Blocks!</div>
+    </div>
+
+    <div class="steps-wrap">
+
+      <!-- STEP 1 -->
+      <div class="step-content active" id="step-1">
+        <div class="step-header-row"><div class="step-num-badge">1</div><div class="step-title">Welcome to 3D! 🌐</div></div>
+        <div class="step-desc">
+          In 2D we used <code>x</code> (left/right) and <code>y</code> (up/down).<br><br>
+          In 3D we add a <strong>third axis</strong>: <code>z</code> (towards you / away from you) — like depth into the screen!<br><br>
+          Babylon.js needs 4 things to show anything:<br>
+          <strong>Engine</strong> — runs the render loop (talks to the GPU)<br>
+          <strong>Scene</strong> — the "world" that holds everything<br>
+          <strong>Camera</strong> — your point of view<br>
+          <strong>Light</strong> — without light, everything is pitch black!
+        </div>
+        <div class="fun-fact"><strong>🎮 Minecraft uses 3 axes too!</strong>In Minecraft: X = East/West, Y = Up/Down (bedrock to sky!), Z = North/South. Press F3 in Minecraft to see your X Y Z coordinates!</div>
+        <div class="concept-chips"><span class="chip">x y z axes</span><span class="chip">scene</span><span class="chip">camera</span><span class="chip">light</span><span class="chip">engine</span></div>
+        <div class="code-label">Set up your first 3D scene ↓</div>
+        <div class="editor-wrap"><textarea id="code-1" spellcheck="false">// BABYLON is a global — Babylon.js is already loaded!
+
+const canvas = document.getElementById('renderCanvas');
+
+// 1. Engine — talks to the GPU to draw 3D
+const engine = new BABYLON.Engine(canvas, true);
+
+// 2. Scene — our 3D world container
+const scene = new BABYLON.Scene(engine);
+scene.clearColor = new BABYLON.Color4(0.05, 0.05, 0.15, 1); // night sky
+
+// 3. Camera — ArcRotateCamera lets you orbit with mouse drag!
+const camera = new BABYLON.ArcRotateCamera(
+  "cam",
+  -Math.PI / 2,           // horizontal angle
+  Math.PI / 3,            // vertical angle (looking a bit down)
+  12,                     // distance from target
+  BABYLON.Vector3.Zero(), // target = centre of world
+  scene
+);
+camera.attachControl(canvas, true); // connect mouse/touch
+
+// 4. Light — HemisphericLight = sky + ground bounce
+const light = new BABYLON.HemisphericLight(
+  "light",
+  new BABYLON.Vector3(0, 1, 0), // light comes from above
+  scene
+);
+light.intensity = 0.9;
+
+// 5. Render loop — draws 60 frames per second!
+engine.runRenderLoop(() => scene.render());
+
+// The scene is empty — try dragging and scrolling the 3D view!
+// Next step: we'll draw your first 3D block.</textarea></div>
+        <div class="error-box" id="err-1"></div>
+        <div class="btn-row">
+          <button class="btn-run" onclick="runCode(1)">▶ Run Scene!</button>
+          <button class="btn-next" id="next-1" onclick="gotoStep(2)">Next: Draw a Cube →</button>
+        </div>
+        <div class="celebrate" id="cel-1">🎉 Your first 3D scene! Try dragging the view with your mouse!</div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step-content" id="step-2">
+        <div class="step-header-row"><div class="step-num-badge">2</div><div class="step-title">Your First 3D Block 🧊</div></div>
+        <div class="step-desc">
+          In Babylon.js, 3D objects are called <strong>meshes</strong>. A box mesh is a cube!<br><br>
+          We give it a <strong>material</strong> — like the paint on its surface.<br>
+          <code>MeshBuilder.CreateBox()</code> makes a cube.<br>
+          <code>StandardMaterial</code> lets us colour it.<br>
+          <code>mesh.position</code> moves it in 3D space (x, y, z).<br><br>
+          Try changing the colour values — they go from 0.0 to 1.0 (like a percentage of red, green, blue).
+        </div>
+        <div class="fun-fact"><strong>🧱 Everything in 3D is a mesh!</strong>A Minecraft block is the simplest possible mesh — 6 faces, 12 triangles. A complex game character might have 50,000 triangles!</div>
+        <div class="concept-chips"><span class="chip">MeshBuilder</span><span class="chip">StandardMaterial</span><span class="chip">Color3</span><span class="chip">position</span><span class="chip">rotation</span></div>
+        <div class="code-label">Draw and spin a 3D block ↓</div>
+        <div class="editor-wrap"><textarea id="code-2" spellcheck="false">const canvas = document.getElementById('renderCanvas');
+const engine = new BABYLON.Engine(canvas, true);
+const scene  = new BABYLON.Scene(engine);
+scene.clearColor = new BABYLON.Color4(0.05, 0.05, 0.15, 1);
+
+const camera = new BABYLON.ArcRotateCamera("cam", -Math.PI/2, Math.PI/3, 10, BABYLON.Vector3.Zero(), scene);
+camera.attachControl(canvas, true);
+
+const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+light.intensity = 0.9;
+
+// ── CREATE A BLOCK ──────────────────────────
+const block = BABYLON.MeshBuilder.CreateBox("myBlock", { size: 2 }, scene);
+block.position = new BABYLON.Vector3(0, 0, 0); // x=0, y=0, z=0 (centre)
+
+// Give it a green material
+const mat = new BABYLON.StandardMaterial("grassMat", scene);
+mat.diffuseColor = new BABYLON.Color3(0.36, 0.66, 0.20); // R, G, B — all 0..1
+block.material = mat;
+
+// Slowly spin the block so we can see all 6 faces!
+scene.registerBeforeRender(() => {
+  block.rotation.y += 0.01;
+});
+
+engine.runRenderLoop(() => scene.render());
+
+// 👉 TRY:
+// size: 2  →  try 1 or 4
+// Color3(0.36, 0.66, 0.20)  →  try (0.55, 0.36, 0.24) for dirt
+// rotation.y  →  try rotation.x for a different spin!</textarea></div>
+        <div class="error-box" id="err-2"></div>
+        <div class="btn-row">
+          <button class="btn-run" onclick="runCode(2)">▶ Run!</button>
+          <button class="btn-next" id="next-2" onclick="gotoStep(3)">Next: Build a Floor →</button>
+        </div>
+        <div class="celebrate" id="cel-2">🎉 A spinning 3D block! Drag to orbit around it!</div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step-content" id="step-3">
+        <div class="step-header-row"><div class="step-num-badge">3</div><div class="step-title">A Floor of Blocks 🌍</div></div>
+        <div class="step-desc">
+          Remember the <strong>nested loop</strong> from Mission 2? Same idea — but now we place blocks in <strong>3D space</strong>!<br><br>
+          <code>position.x</code> = left / right<br>
+          <code>position.z</code> = forward / back (the new axis!)<br>
+          <code>position.y</code> = up / down (height)<br><br>
+          We also use a <strong>colour map</strong> — just like the level map from Mission 3, but in 3D!
+        </div>
+        <div class="fun-fact"><strong>⚡ Minecraft performance trick!</strong>Minecraft only draws block faces that are visible. A solid stone wall only needs its front face — the other 5 faces are hidden. This is called "face culling" and it's why Minecraft can show huge worlds!</div>
+        <div class="concept-chips"><span class="chip">nested loops</span><span class="chip">position.x/y/z</span><span class="chip">Vector3</span><span class="chip">block types</span><span class="chip">materials</span></div>
+        <div class="code-label">Build a floor with nested loops ↓</div>
+        <div class="editor-wrap"><textarea id="code-3" spellcheck="false">const canvas = document.getElementById('renderCanvas');
+const engine = new BABYLON.Engine(canvas, true);
+const scene  = new BABYLON.Scene(engine);
+scene.clearColor = new BABYLON.Color4(0.35, 0.65, 0.95, 1); // blue sky!
+
+// Orbit camera — pull back to see the whole floor
+const camera = new BABYLON.ArcRotateCamera("cam", -Math.PI/2, Math.PI/3.5, 22, new BABYLON.Vector3(3.5, 0, 3.5), scene);
+camera.attachControl(canvas, true);
+camera.lowerRadiusLimit = 5;
+camera.upperRadiusLimit = 40;
+
+const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 2, 0), scene);
+light.intensity = 1.0;
+light.groundColor = new BABYLON.Color3(0.3, 0.2, 0.1);
+
+// One material per block type (reusing = faster!)
+function makeMat(name, r, g, b) {
+  const m = new BABYLON.StandardMaterial(name, scene);
+  m.diffuseColor = new BABYLON.Color3(r, g, b);
+  return m;
+}
+// 0=grass 1=dirt 2=stone 3=water 4=sand
+const MATS = [
+  makeMat("grass", 0.36, 0.66, 0.20),
+  makeMat("dirt",  0.55, 0.36, 0.24),
+  makeMat("stone", 0.50, 0.50, 0.50),
+  makeMat("water", 0.20, 0.55, 0.85),
+  makeMat("sand",  0.90, 0.80, 0.50),
+];
+MATS[3].alpha = 0.75; // semi-transparent water!
+
+// Level map — same idea as Mission 3!
+// 0=grass  1=dirt  2=stone  3=water  4=sand
+const map = [
+  [0,0,0,0,0,0,0,0],
+  [0,0,2,2,0,0,0,0],
+  [0,0,2,2,0,3,3,0],
+  [0,0,0,0,0,3,3,0],
+  [0,4,4,0,0,0,0,0],
+  [0,4,4,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0],
+];
+
+// Nested loops — same as Mission 2, but in 3D!
+for (let row = 0; row < map.length; row++) {
+  for (let col = 0; col < map[row].length; col++) {
+    const type = map[row][col];
+    const box = BABYLON.MeshBuilder.CreateBox("b_"+row+"_"+col, { size: 1 }, scene);
+    // x = col (left/right), y = 0 (ground level), z = row (forward/back)
+    box.position = new BABYLON.Vector3(col, 0, row);
+    box.material = MATS[type];
+  }
+}
+
+engine.runRenderLoop(() => scene.render());
+// Drag to rotate, scroll to zoom.
+// Try changing the map numbers — add a river, a road, an island!</textarea></div>
+        <div class="error-box" id="err-3"></div>
+        <div class="btn-row">
+          <button class="btn-run" onclick="runCode(3)">▶ Build Floor!</button>
+          <button class="btn-next" id="next-3" onclick="gotoStep(4)">Next: Walk Around →</button>
+        </div>
+        <div class="celebrate" id="cel-3">🎉 A 3D world! Drag to fly around it. Change the map numbers and run again!</div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step-content" id="step-4">
+        <div class="step-header-row"><div class="step-num-badge">4</div><div class="step-title">Walk in Your World! 🚶</div></div>
+        <div class="step-desc">
+          Now let's switch to a <strong>first-person camera</strong> — just like Minecraft!<br><br>
+          <strong>Click the 3D view first</strong> to lock the mouse, then:<br>
+          <code>W / A / S / D</code> or arrow keys → walk<br>
+          <code>Mouse</code> → look around<br>
+          <code>E / Q</code> or Space/Shift → up / down<br><br>
+          We also add <strong>layers</strong> of blocks — grass on top, dirt below — using the Y axis!
+        </div>
+        <div class="fun-fact"><strong>🎥 How Minecraft's camera works!</strong>Minecraft stores the camera as a position (X,Y,Z) and two angles: <em>yaw</em> (turning left/right) and <em>pitch</em> (looking up/down). Babylon.js's UniversalCamera handles all of this automatically!</div>
+        <div class="concept-chips"><span class="chip">UniversalCamera</span><span class="chip">WASD keys</span><span class="chip">first person</span><span class="chip">Y layers</span><span class="chip">DirectionalLight</span></div>
+        <div class="code-label">First-person camera — click the 3D view to play! ↓</div>
+        <div class="editor-wrap"><textarea id="code-4" spellcheck="false">const canvas = document.getElementById('renderCanvas');
+const engine = new BABYLON.Engine(canvas, true);
+const scene  = new BABYLON.Scene(engine);
+scene.clearColor = new BABYLON.Color4(0.35, 0.65, 0.95, 1);
+
+// First-person camera — starts at eye height (y = 2.5)
+const camera = new BABYLON.UniversalCamera("cam",
+  new BABYLON.Vector3(4, 2.5, -1), // starting x, y, z
+  scene
+);
+camera.setTarget(new BABYLON.Vector3(4, 2.5, 4));
+camera.speed = 0.2;
+camera.minZ  = 0.1;
+camera.keysUp    = [87, 38]; // W, ↑
+camera.keysDown  = [83, 40]; // S, ↓
+camera.keysLeft  = [65, 37]; // A, ←
+camera.keysRight = [68, 39]; // D, →
+camera.keysUpward   = [69];  // E
+camera.keysDownward = [81];  // Q
+camera.attachControl(canvas, true);
+
+// Sunlight + sky bounce
+const sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(-1, -2, -1), scene);
+sun.intensity = 1.0;
+const sky = new BABYLON.HemisphericLight("sky", new BABYLON.Vector3(0, 1, 0), scene);
+sky.intensity = 0.35;
+sky.groundColor = new BABYLON.Color3(0.4, 0.3, 0.2);
+
+// Materials
+function makeMat(name, r, g, b, alpha) {
+  const m = new BABYLON.StandardMaterial(name, scene);
+  m.diffuseColor = new BABYLON.Color3(r, g, b);
+  if (alpha !== undefined) m.alpha = alpha;
+  return m;
+}
+const MATS = {
+  grass: makeMat("grass", 0.36, 0.66, 0.20),
+  dirt:  makeMat("dirt",  0.55, 0.36, 0.24),
+  stone: makeMat("stone", 0.48, 0.48, 0.48),
+  water: makeMat("water", 0.20, 0.55, 0.85, 0.7),
+};
+
+// Build world: surface map + underground layers
+// Surface: 0=grass  1=water hole
+const surface = [
+  [0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,1,1,0,0,0,0,0],
+  [0,0,0,1,1,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0],
+];
+// Underground layers (top=index 0 → y=-1, bottom → y=-3)
+const underMats = [MATS.dirt, MATS.dirt, MATS.stone];
+
+// Place underground layers
+for (let layer = 0; layer < 3; layer++) {
+  for (let r = 0; r < 10; r++) {
+    for (let c = 0; c < 10; c++) {
+      const b = BABYLON.MeshBuilder.CreateBox("u"+layer+r+c, {size:1}, scene);
+      b.position = new BABYLON.Vector3(c, -(layer+1), r);
+      b.material = underMats[layer];
+    }
+  }
+}
+// Surface layer
+for (let r = 0; r < 10; r++) {
+  for (let c = 0; c < 10; c++) {
+    const type = surface[r][c];
+    const mat  = type === 1 ? MATS.water : MATS.grass;
+    const b = BABYLON.MeshBuilder.CreateBox("s"+r+c, {size:1}, scene);
+    b.position = new BABYLON.Vector3(c, 0, r);
+    b.material = mat;
+  }
+}
+
+engine.runRenderLoop(() => scene.render());
+// 👉 CLICK the 3D view, then use WASD to walk!
+// Notice the world has depth — grass on top, dirt, then stone beneath.</textarea></div>
+        <div class="error-box" id="err-4"></div>
+        <div class="btn-row">
+          <button class="btn-run" onclick="runCode(4)">▶ Enter World!</button>
+          <button class="btn-next" id="next-4" onclick="gotoStep(5)">Final Step: Place Blocks! →</button>
+        </div>
+        <div class="celebrate" id="cel-4">🎉 You're walking in 3D! WASD to move, mouse to look around!</div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="step-content" id="step-5">
+        <div class="step-header-row"><div class="step-num-badge">5</div><div class="step-title">🏆 Place &amp; Break Blocks!</div></div>
+        <div class="step-desc">
+          The core Minecraft mechanic: <strong>left-click to break</strong>, <strong>right-click to place</strong>!<br><br>
+          Babylon.js has <strong>ray casting</strong> — it shoots an invisible ray from the camera through the mouse and tells us exactly which block we're looking at. That's how Minecraft knows which block your crosshair is on!<br><br>
+          <strong>Click the 3D view</strong> to lock cursor, then:<br>
+          <code>WASD</code> to walk · <code>Mouse</code> to look<br>
+          <strong>Left-click</strong> to break a block<br>
+          <strong>Right-click</strong> to place a block<br>
+          <strong>Keys 1–5</strong> to switch block type
+        </div>
+        <div class="fun-fact"><strong>🔦 Ray casting — the magic behind Minecraft!</strong>Every frame, Minecraft shoots a ray from your eyes in the direction you're looking. Where it hits a block first = the block you're targeting. This same trick powers FPS aiming, 3D mouse picking, and even ray-traced graphics!</div>
+        <div class="concept-chips"><span class="chip">ray casting</span><span class="chip">pickWithRay</span><span class="chip">getNormal</span><span class="chip">dispose</span><span class="chip">pointer events</span></div>
+        <div class="code-label">Left-click break · Right-click place · 1–5 switch block · Click view first! ↓</div>
+        <div class="editor-wrap"><textarea id="code-5" spellcheck="false">const canvas = document.getElementById('renderCanvas');
+const engine = new BABYLON.Engine(canvas, true);
+const scene  = new BABYLON.Scene(engine);
+scene.clearColor = new BABYLON.Color4(0.35, 0.65, 0.95, 1);
+
+// First-person camera
+const camera = new BABYLON.UniversalCamera("cam", new BABYLON.Vector3(4, 2.5, -2), scene);
+camera.setTarget(new BABYLON.Vector3(4, 2.5, 4));
+camera.speed = 0.2; camera.minZ = 0.1;
+camera.keysUp=[87,38]; camera.keysDown=[83,40];
+camera.keysLeft=[65,37]; camera.keysRight=[68,39];
+camera.keysUpward=[69]; camera.keysDownward=[81];
+camera.attachControl(canvas, true);
+
+// Lights
+const sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(-1,-2,-1), scene);
+sun.intensity = 1.0;
+const sky = new BABYLON.HemisphericLight("sky", new BABYLON.Vector3(0,1,0), scene);
+sky.intensity = 0.35;
+
+// Materials
+function makeMat(name, r, g, b) {
+  const m = new BABYLON.StandardMaterial(name, scene);
+  m.diffuseColor = new BABYLON.Color3(r, g, b);
+  return m;
+}
+const MATS = [
+  makeMat("grass", 0.36, 0.66, 0.20), // 0 — press 1
+  makeMat("dirt",  0.55, 0.36, 0.24), // 1 — press 2
+  makeMat("stone", 0.50, 0.50, 0.50), // 2 — press 3
+  makeMat("wood",  0.42, 0.28, 0.15), // 3 — press 4
+  makeMat("gold",  0.90, 0.75, 0.10), // 4 — press 5
+];
+
+let currentType = 0; // which block type to place
+
+// Build the starter world
+function makeBlock(x, y, z, type) {
+  const b = BABYLON.MeshBuilder.CreateBox("blk", {size:1}, scene);
+  b.position = new BABYLON.Vector3(x, y, z);
+  b.material = MATS[type];
+  return b;
+}
+// Ground layer
+for (let r = 0; r < 10; r++) {
+  for (let c = 0; c < 10; c++) {
+    makeBlock(c, 0, r, 0);  // grass
+    makeBlock(c, -1, r, 1); // dirt below
+  }
+}
+// A little stone tower to break!
+for (let y = 1; y <= 3; y++) makeBlock(5, y, 5, 2);
+
+// ── Crosshair ──
+const crosshair = document.createElement('div');
+crosshair.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:22px;pointer-events:none;text-shadow:0 0 4px #000,0 0 8px #000;user-select:none;';
+crosshair.textContent = '+';
+document.querySelector('.viewport-wrap').appendChild(crosshair);
+
+// ── Block selector HUD (bottom of screen) ──
+const hud = document.createElement('div');
+hud.style.cssText = 'position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:5px;pointer-events:auto;';
+['🟩 Grass','🟫 Dirt','⬜ Stone','🟤 Wood','🟡 Gold'].forEach((name, i) => {
+  const btn = document.createElement('div');
+  btn.style.cssText = 'background:rgba(0,0,0,.75);border:2px solid '+(i===0?'#FFD700':'rgba(255,255,255,.3)')+';border-radius:6px;padding:4px 9px;font-size:11px;color:#fff;font-family:Nunito,sans-serif;font-weight:700;cursor:pointer;';
+  btn.textContent = name;
+  btn.onclick = () => selectType(i);
+  btn.id = 'hud_' + i;
+  hud.appendChild(btn);
+});
+document.querySelector('.viewport-wrap').appendChild(hud);
+
+function selectType(i) {
+  currentType = i;
+  for (let j = 0; j < 5; j++) {
+    document.getElementById('hud_'+j).style.borderColor = j===i ? '#FFD700' : 'rgba(255,255,255,.3)';
+  }
+}
+
+// Number keys 1–5 switch block type
+window.addEventListener('keydown', e => {
+  const n = parseInt(e.key);
+  if (n >= 1 && n <= 5) selectType(n - 1);
+});
+
+// ── Ray cast: left-click = break, right-click = place ──
+scene.onPointerDown = (evt) => {
+  // Only pick blocks (not the HUD buttons)
+  const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, null, camera);
+  const hit = scene.pickWithRay(ray);
+
+  if (hit && hit.hit && hit.pickedMesh) {
+    if (evt.button === 0) {
+      // LEFT CLICK: remove block
+      hit.pickedMesh.dispose();
+    } else if (evt.button === 2) {
+      // RIGHT CLICK: place block adjacent to the clicked face
+      const n   = hit.getNormal(true, true);
+      const pos = hit.pickedMesh.position;
+      makeBlock(
+        Math.round(pos.x + n.x),
+        Math.round(pos.y + n.y),
+        Math.round(pos.z + n.z),
+        currentType
+      );
+    }
+  }
+};
+
+// Prevent right-click menu from appearing
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+engine.runRenderLoop(() => scene.render());
+// 👉 CLICK the 3D view, walk with WASD, look with mouse
+// LEFT CLICK to break  ·  RIGHT CLICK to place
+// Press 1–5 to pick a block type — try building a house!</textarea></div>
+        <div class="error-box" id="err-5"></div>
+        <div class="btn-row">
+          <button class="btn-run" onclick="runCode(5)">▶ Enter &amp; Build!</button>
+        </div>
+        <div class="celebrate" id="cel-5">🏆 MISSION 7 COMPLETE! You made a 3D Minecraft-style game! Go build something! 🧊</div>
+      </div>
+
+    </div><!-- steps-wrap -->
+  </div><!-- lesson-panel -->
+
+  <!-- ── RIGHT: 3D Viewport ── -->
+  <div class="viewport-panel">
+    <div class="viewport-toolbar">
+      <div class="dot" style="background:#e05252"></div>
+      <div class="dot" style="background:#e0a052"></div>
+      <div class="dot" style="background:#5DA832"></div>
+      <span style="margin-left:6px">🧊 3D World — Powered by Babylon.js</span>
+      <span style="margin-left:auto;font-size:.7rem;opacity:.5" id="webgl-status">WebGL ready</span>
+    </div>
+    <div class="viewport-wrap">
+      <!-- Placeholder shown before any code runs — NOT a canvas, so WebGL stays pristine -->
+      <div id="placeholder">
+        <div class="ph-icon">🧊</div>
+        <div class="ph-title">▶ Run the code to see your 3D world!</div>
+        <div class="ph-sub">Start with Step 1 on the left</div>
+      </div>
+      <!-- The real WebGL canvas — never touched by 2D context -->
+      <canvas id="renderCanvas" tabindex="0"></canvas>
+      <div class="controls-hint" id="controls-hint">
+        <span><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span> Move</span>
+        <span><span class="key">Mouse</span> Look</span>
+        <span><span class="key">Scroll</span> Zoom</span>
+        <span style="color:#6c63ff;font-weight:700">Click view first →</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- layout -->
+
+<!-- Babylon.js — loaded from the official CDN -->
+<script src="./babylon.js"></script>
+
+<script>
+let currentEngine = null;
+let currentStep   = 1;
+let completedSteps = new Set();
+const TOTAL = 5;
+
+// Check WebGL support on load and update status indicator
+window.addEventListener('load', () => {
+  const testCanvas = document.createElement('canvas');
+  const gl = testCanvas.getContext('webgl2') || testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
+  const statusEl = document.getElementById('webgl-status');
+  if (gl) {
+    const dbgInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    const renderer = dbgInfo ? gl.getParameter(dbgInfo.UNMASKED_RENDERER_WEBGL) : 'OK';
+    statusEl.textContent = 'WebGL ✓';
+    statusEl.style.color = '#5DA832';
+  } else {
+    statusEl.textContent = 'WebGL not found — try Chrome/Edge';
+    statusEl.style.color = '#e05252';
+  }
+});
+
+function disposeEngine() {
+  if (currentEngine) {
+    try { currentEngine.stopRenderLoop(); currentEngine.dispose(); } catch(e) {}
+    currentEngine = null;
+  }
+  // Remove any overlay elements injected by step 5 code
+  const vw = document.querySelector('.viewport-wrap');
+  vw.querySelectorAll('div:not(#placeholder):not(.controls-hint)').forEach(d => d.remove());
+}
+
+function runCode(step) {
+  disposeEngine();
+
+  const code = document.getElementById('code-' + step).value;
+  const err  = document.getElementById('err-' + step);
+  err.style.display = 'none';
+
+  // Hide the placeholder once we start running
+  document.getElementById('placeholder').style.display = 'none';
+
+  try {
+    // Run user code — BABYLON is already a global from the <script> tag above
+    const fn = new Function(code);
+    fn();
+
+    // Capture the engine Babylon just created
+    currentEngine = BABYLON.Engine.LastCreatedEngine;
+
+    completedSteps.add(step);
+    updateProgress();
+
+    const cel = document.getElementById('cel-' + step);
+    if (cel) cel.style.display = 'block';
+
+    const nxt = document.getElementById('next-' + step);
+    if (nxt) nxt.classList.add('show');
+
+    document.getElementById('controls-hint').classList.add('show');
+    document.getElementById('renderCanvas').focus();
+
+  } catch(e) {
+    err.textContent = '❌ Oops! ' + e.message;
+    err.style.display = 'block';
+    console.error(e);
+    // Show placeholder again if it failed
+    if (!currentEngine) document.getElementById('placeholder').style.display = 'flex';
+  }
+}
+
+function gotoStep(n) {
+  document.getElementById('tab-' + currentStep).classList.remove('active');
+  if (completedSteps.has(currentStep)) document.getElementById('tab-' + currentStep).classList.add('done');
+  document.getElementById('step-' + currentStep).classList.remove('active');
+
+  currentStep = n;
+  document.getElementById('tab-' + n).classList.add('active');
+  document.getElementById('step-' + n).classList.add('active');
+  updateProgress();
+  document.querySelector('.steps-wrap').scrollTop = 0;
+}
+
+function updateProgress() {
+  const done = completedSteps.size;
+  document.getElementById('progressFill').style.width = (done / TOTAL * 100) + '%';
+  document.getElementById('progressLabel').textContent =
+    'Step ' + currentStep + ' of ' + TOTAL +
+    (done > 0 ? '  ·  ' + done + ' completed ✓' : '');
+}
+
+updateProgress();
+</script>
+</body>
+</html>

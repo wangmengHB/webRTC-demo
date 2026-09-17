@@ -93,7 +93,7 @@
     background: var(--panel2);
     border: 2px solid var(--border);
     border-radius: 14px;
-    overflow: hidden;
+    overflow: auto;
     transition: border-color 0.2s;
   }
   .step-card.active   { border-color: var(--accent); }
@@ -146,7 +146,7 @@
   .editor-wrap {
     position: relative;
     border-radius: 10px;
-    overflow: hidden;
+    overflow: auto;
     border: 2px solid var(--border);
   }
   .editor-wrap:focus-within { border-color: var(--accent); }
@@ -242,6 +242,7 @@
     image-rendering: pixelated;
     box-shadow: 0 0 40px #00000080;
     max-width: 100%;
+    width:90%;
   }
 
   /* fun facts */
@@ -263,7 +264,7 @@
     background: var(--border);
     border-radius: 10px;
     height: 8px;
-    overflow: hidden;
+    overflow: auto;
   }
   .progress-bar-fill {
     background: linear-gradient(90deg, var(--accent), var(--gold));
