@@ -3,16 +3,26 @@ minecraft_portrait.py
 =====================
 Turns a photo of your kid into a Minecraft block wall!
 Supports both a saved image file AND live laptop camera capture.
+Optionally removes the background so only the person appears on the wall.
 
 Requirements:
-    pip install mcpi pillow numpy opencv-python
+    pip install mcpi pillow numpy opencv-python rembg
 
 Usage:
-    python minecraft_portrait.py              # open laptop camera to take photo
-    python minecraft_portrait.py photo.jpg   # use an existing image file
+    python minecraft_portrait.py                        # camera, keep background
+    python minecraft_portrait.py --nobg                 # camera, remove background
+    python minecraft_portrait.py photo.jpg              # file, keep background
+    python minecraft_portrait.py photo.jpg --nobg       # file, remove background
+
+Background colour (what replaces the person's background on the wall):
+    Edit BG_BLOCK near the top of this file.
+    Default: Light Blue Wool (35, 3) — looks like sky.
 
 The wall is built starting at your player's current position.
 Stand somewhere flat with 100+ blocks of open space in front of you.
+
+Note: the first time --nobg runs it downloads a small AI model (~170 MB).
+It is saved to your home folder and reused on every run after that.
 """
 
 import sys
@@ -20,6 +30,9 @@ import mcpi.minecraft as minecraft
 import mcpi.block as block
 from PIL import Image
 import numpy as np
+
+# rembg is imported lazily inside remove_background() so the script still
+# works even if rembg is not installed — as long as --nobg is not used.
 
 # ─────────────────────────────────────────────────────────────────────────────
 # BLOCK PALETTE
@@ -58,6 +71,18 @@ PALETTE = [
     ( 87,   0, "Netherrack",          (100,  31,  29)),  # dark red-brown
     ( 45,   0, "Brick",               (150,  97,  83)),  # brick / medium skin
 ]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# BACKGROUND BLOCK
+# When background removal is used, transparent pixels are replaced with this
+# block in the Minecraft wall.
+# Change to any (block_id, data_value) pair from the palette above.
+#   (35, 3)  = Light Blue Wool  — looks like sky      ← default
+#   ( 0, 0)  = Air              — leaves holes in wall
+#   ( 4, 0)  = Cobblestone      — grey stone border
+#   (80, 0)  = Snow Block       — clean white border
+# ─────────────────────────────────────────────────────────────────────────────
+BG_BLOCK = (35, 3)   # Light Blue Wool
 
 # ─────────────────────────────────────────────────────────────────────────────
 # COLOUR MATCHING
@@ -240,18 +265,74 @@ def capture_from_camera():
     return captured_pil
 
 # ─────────────────────────────────────────────────────────────────────────────
+# BACKGROUND REMOVAL
+# Uses the rembg library which runs a small AI model (U2Net) locally.
+# Input:  any PIL Image (RGB or RGBA)
+# Output: PIL Image in RGBA mode — background pixels have alpha = 0 (transparent)
+#
+# How it works in plain English:
+#   1. rembg sends the image through a neural network that has been trained
+#      to recognise people vs backgrounds.
+#   2. It produces an "alpha mask" — a greyscale image where white = person,
+#      black = background, and grey = soft edge (hair, fuzzy edges).
+#   3. The mask is applied to the original image as the alpha channel.
+#   4. We then use that alpha channel when converting pixels to blocks:
+#      fully transparent pixels → BG_BLOCK, everything else → colour match.
+# ─────────────────────────────────────────────────────────────────────────────
+def remove_background(img):
+    """
+    Remove the background from a PIL Image using rembg (AI-based).
+    Returns a PIL Image in RGBA mode.
+    Transparent pixels = background.  Opaque pixels = person.
+    """
+    try:
+        from rembg import remove as rembg_remove
+    except ImportError:
+        print("❌  rembg is not installed.")
+        print("    Run:  pip install rembg")
+        sys.exit(1)
+
+    print("🤖  Removing background with AI model …")
+    print("    (First run downloads ~170 MB model — saved for future runs)")
+
+    # rembg works directly with PIL Images
+    # It returns an RGBA image where the background is transparent
+    result = rembg_remove(img)
+
+    # Count how many pixels were kept vs removed, for a nice status message
+    pixels    = np.array(result)          # shape: (H, W, 4) — R, G, B, Alpha
+    alpha     = pixels[:, :, 3]          # just the alpha channel
+    kept      = int(np.sum(alpha > 10))  # pixels that are mostly opaque
+    removed   = int(np.sum(alpha <= 10)) # pixels that are mostly transparent
+    total     = kept + removed
+    kept_pct  = int(kept / total * 100)
+
+    print(f"✅  Background removed!")
+    print(f"    Person:     {kept:>7,} pixels  ({kept_pct}%)")
+    print(f"    Background: {removed:>7,} pixels  ({100 - kept_pct}%)")
+    print(f"    Background will be filled with block id={BG_BLOCK[0]}, data={BG_BLOCK[1]}")
+
+    return result   # RGBA PIL Image
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # IMAGE PREPARATION
 # Crop to square, resize to target size, optionally enhance contrast
 # ─────────────────────────────────────────────────────────────────────────────
 def prepare_image(img, size=100):
     """
     Crop to a centre square, resize to size×size.
-    img can be a PIL Image (from file or camera — both work the same way).
+    Preserves RGBA if the image has an alpha channel (i.e. after background removal).
+    img can be a PIL Image from a file, the camera, or rembg output.
     """
-    img = img.convert("RGB")   # ensure no alpha channel
+    # Keep RGBA if it has one (background-removed image), otherwise use RGB
+    if img.mode == "RGBA":
+        pass          # keep the alpha channel intact
+    else:
+        img = img.convert("RGB")
 
-    # Crop to square
-    w, h = img.size
+    # Crop to square using the centre
+    w, h  = img.size
     side  = min(w, h)
     left  = (w - side) // 2
     top   = (h - side) // 2
@@ -259,7 +340,8 @@ def prepare_image(img, size=100):
 
     # Resize with high-quality LANCZOS filter
     img = img.resize((size, size), Image.LANCZOS)
-    print(f"✅  Image ready: {size}×{size} pixels")
+    mode_label = "RGBA (background removed)" if img.mode == "RGBA" else "RGB"
+    print(f"✅  Image ready: {size}×{size} pixels  [{mode_label}]")
     return img
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -269,23 +351,48 @@ def image_to_blocks(img):
     """
     Convert every pixel of a PIL Image to a Minecraft block.
     Returns a 2D list: grid[row][col] = (block_id, data_value)
+
+    Alpha channel handling (background-removed images):
+        - Alpha >= 128  →  opaque pixel  →  colour-match to nearest palette block
+        - Alpha <  128  →  transparent   →  use BG_BLOCK (the background fill block)
+
+    For plain RGB images (no alpha), every pixel is colour-matched normally.
     """
-    pixels = np.array(img)   # shape: (height, width, 3)
+    has_alpha = (img.mode == "RGBA")
+    pixels    = np.array(img)   # shape: (H, W, 3) or (H, W, 4)
     height, width = pixels.shape[:2]
+
     print(f"🎨  Mapping {width * height:,} pixels to Minecraft blocks …")
+    if has_alpha:
+        print(f"    Alpha channel detected — transparent pixels → BG_BLOCK {BG_BLOCK}")
 
     grid          = []
     unique_blocks = {}
+    bg_count      = 0
 
     for row in range(height):
         block_row = []
         for col in range(width):
+
+            # ── Check alpha first ──────────────────────────────────────────
+            if has_alpha:
+                alpha = int(pixels[row, col, 3])
+                if alpha < 128:
+                    # Transparent pixel = background
+                    block_row.append(BG_BLOCK)
+                    unique_blocks["[Background fill]"] = \
+                        unique_blocks.get("[Background fill]", 0) + 1
+                    bg_count += 1
+                    continue   # skip colour matching for this pixel
+
+            # ── Opaque pixel → colour match ────────────────────────────────
             r = int(pixels[row, col, 0])
             g = int(pixels[row, col, 1])
             b = int(pixels[row, col, 2])
             bid, bdata, bname = closest_block(r, g, b)
             block_row.append((bid, bdata))
             unique_blocks[bname] = unique_blocks.get(bname, 0) + 1
+
         grid.append(block_row)
 
     print("\n📦  Blocks used in this portrait:")
@@ -369,10 +476,29 @@ def main():
     WALL_SIZE   = 100         # change to 20 for a quick test run!
     ORIENTATION = "vertical"  # "vertical" = wall, "horizontal" = floor mosaic
 
-    # ── Decide image source ──────────────────────────────────────────────────
-    if len(sys.argv) >= 2:
-        # Image file provided on command line
-        image_path = sys.argv[1]
+    # ── Parse command-line arguments ─────────────────────────────────────────
+    # Accepted forms:
+    #   python minecraft_portrait.py
+    #   python minecraft_portrait.py --nobg
+    #   python minecraft_portrait.py photo.jpg
+    #   python minecraft_portrait.py photo.jpg --nobg
+    #   python minecraft_portrait.py --nobg photo.jpg   (order doesn't matter)
+    args       = sys.argv[1:]                          # everything after the script name
+    remove_bg  = "--nobg" in args                      # True if --nobg flag present
+    file_args  = [a for a in args if not a.startswith("--")]  # non-flag arguments
+    image_path = file_args[0] if file_args else None   # first non-flag = filename
+
+    print("=" * 56)
+    print("  🧱  Minecraft Portrait Builder")
+    print("=" * 56)
+    print(f"  Wall size:          {WALL_SIZE}×{WALL_SIZE} blocks")
+    print(f"  Orientation:        {ORIENTATION}")
+    print(f"  Background removal: {'YES  (--nobg)' if remove_bg else 'no'}")
+    print(f"  Background block:   id={BG_BLOCK[0]}, data={BG_BLOCK[1]}")
+    print("=" * 56 + "\n")
+
+    # ── Get the image ────────────────────────────────────────────────────────
+    if image_path:
         print(f"📷  Loading image from file: {image_path}")
         try:
             raw_img = Image.open(image_path)
@@ -383,7 +509,6 @@ def main():
             print(f"❌  Could not open image: {e}")
             sys.exit(1)
     else:
-        # No file given → open the laptop camera
         print("No image file given — opening laptop camera.")
         print("(You can also run:  python minecraft_portrait.py photo.jpg)\n")
         raw_img = capture_from_camera()
@@ -391,7 +516,15 @@ def main():
             print("No photo taken. Exiting.")
             sys.exit(0)
 
-    # ── Prepare image ────────────────────────────────────────────────────────
+    # ── Remove background (optional) ─────────────────────────────────────────
+    # This step happens BEFORE prepare_image so that rembg works on the full
+    # resolution image (better edge quality), and prepare_image then resizes
+    # the already-masked RGBA image down to WALL_SIZE.
+    if remove_bg:
+        raw_img = remove_background(raw_img)
+        # raw_img is now an RGBA PIL Image — transparent = background
+
+    # ── Prepare image (crop + resize) ────────────────────────────────────────
     img    = prepare_image(raw_img, size=WALL_SIZE)
     pixels = np.array(img)
     grid   = image_to_blocks(img)
